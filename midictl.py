@@ -71,8 +71,22 @@ def handle(msg):
                 print("  -->", func.__name__)
             func(msg)
 
-
 def find_pulse(sel):
+    """Find PulseAudio devices matching a certain selector.
+
+    Returns an iterator, filtered based on selection criteria."""
+    it = find_pulse_basic(sel)
+    it = pulse_filter_name(sel, it)
+    #print('a', list(it))
+    it = pulse_filter_it(sel, it)
+    it = pulse_filter_last(sel, it)
+    return it
+
+def find_pulse_basic(sel):
+    """Yields a basic list of PulseAudio devices.
+
+    This is filter down by other filters.
+    """
     if sel.t == 'source':
         type_ = 'source'
         item_list   = P.source_output_list
@@ -84,32 +98,51 @@ def find_pulse(sel):
         card_list   = P.sink_list
         card_lookup = {x.index: x for x in P.sink_list()}
 
-    if sel.it:
+    if sel.it is not None:
         # Filtering for items
-        if sel.last is True:
-            yield item_list()[-1]
-            return
-        if sel.last is False:
-            yield from item_list()[:-1]
         for src in item_list():
-            if sel.name:
-                if sel.name not in card_lookup[getattr(src, type_)].name:
-                    continue
-            if sel.it == '*':
-                yield src
-                continue
-            if sel.it not in src.proplist['application.process.binary']:
-                continue
+            src.card = card_lookup[getattr(src, type_)]
             yield src
     else:
         # Filtering for cards
         for src in card_list():
-            if sel.name == '*':
-                yield src
-                continue
-            if sel.name not in src.name:
-                continue
             yield src
+
+def pulse_filter_name(sel, it):
+    """Filter PulseAudio based on the card name
+    """
+    print(sel.name)
+    if not sel.name or sel.name == '*':
+        yield from it
+    for item in it:
+        if hasattr(item, 'card'):
+            card = item.card
+        else:
+            card = item
+        print(card, card.name)
+        if sel.name in card.name:
+            yield item
+
+def pulse_filter_it(sel, it):
+    """Filter PulseAudio based on source/sink item name
+    """
+    if sel.it is None or sel.it == '*':
+        yield from it
+    for item in it:
+        if sel.it in src.proplist['application.process.binary']:
+            yield item
+
+def pulse_filter_last(sel, it):
+    """Filter PulseAudio based on being the last item or not
+    """
+    items = tuple(it)
+    if sel.last is False:
+        return items[:-1]
+    if sel.last is True:
+        return items[-1:]
+    return items
+
+
 
 def mute(msg, sel, state=None):
     """Toggle or set mute"""
