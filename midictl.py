@@ -16,6 +16,10 @@ P = pulsectl.Pulse()
 
 
 def listen(argv):
+    """Main event loop.
+
+    Listen for MIDI events and call the handler for each.
+    """
 #    input_name = list(filter(lambda x: "lpd8" in x.lower(), mido.get_input_names()))[0]
 #    with mido.open_input(input_name) as port:
     parser = argparse.ArgumentParser()
@@ -57,6 +61,11 @@ def listen(argv):
 
 
 def handle(msg):
+    """Dispatch a single message to any handlers.
+
+    This function is called once per message, and matches all dispatch
+    filters.  Anything that matches all receives the event.
+    """
     for dis, func in DISPATCHERS:
         if    (dis.t  is None or dis.t == msg.type) \
           and (dis.ch is None or dis.ch == msg.channel) \
@@ -163,6 +172,7 @@ def volume(msg, sel, low=0, high=1):
 
 
 def pulse_move(msg, sel, move_to):
+    """Move a PulseAudio device to a different card"""
     speaker = next(iter(find_pulse(move_to)))
     print(speaker)
     for source in find_pulse(sel):
