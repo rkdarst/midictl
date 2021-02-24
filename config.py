@@ -30,15 +30,15 @@ DISPATCHERS = [
     (Dispatch(t=CC,        c= 5), partial(volume, sel=mic)),
 
     # Zoom microphone mute toggle
-    (Dispatch(t=ON, ch=0, b=4), partial(zoom_mute)),
+    (Dispatch(t=ON, ch=0, b=4), partial(zoom_mute, ignore_fast=50)),
     (Dispatch(t=ON, ch=0, b=4), partial(teams_mute)),
     (Dispatch(t=OFF,ch=0, b=4), partial(zoom_mute)),
     (Dispatch(t=OFF,ch=0, b=4), partial(teams_mute)),
     # Zoom video toggle
-    (Dispatch(t=OFF,ch=0, b=2), partial(zoom_video)),
+    (Dispatch(t=OFF,ch=0, b=8), partial(zoom_video)),
 
     # Volumes, speakers
-    (Dispatch(t=ON, ch=0, b= 8), partial(mute, sel=hdmi)),
+    (Dispatch(t=ON, ch=0, b= 7), partial(mute, sel=hdmi)),
     (Dispatch(t=CC,       c= 1), partial(volume, sel=hdmi_all, low=0, high=.7)),
     (Dispatch(t=CC,       c= 1), partial(volume, sel=headphones_all, low=0, high=.7)),
     (Dispatch(t=CC, ch=0, c= 2), partial(volume, sel=hdmi_all._replace(last=True), low=0, high=.7)),
