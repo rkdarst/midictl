@@ -216,8 +216,17 @@ def keystroke(msg, x11_name, stroke):
     subprocess.call(cmd)
 
 
-def zoom_mute(msg):
-    return keystroke(msg, x11_name='^Zoom Meeting$', stroke='alt+a')
+def zoom_mute(msg, ignore_fast=None):
+    """Zoom software mute via simulater keypress.
+
+    If ignore_fast is a number, ignore note_on events with more than
+    this velocity.  This can be useful for re-synchronizing a keypad
+    toggleable key with the application state.
+    """
+    if ignore_fast and msg.type == 'note_on' and msg.velocity >= ignore_fast:
+        print("Fast press, ignoring")
+        return
+    return keystroke(msg, x11_name='Zoom Meeting$', stroke='alt+a')
 
 def zoom_video(msg):
     return keystroke(msg, x11_name='^Zoom Meeting$', stroke='alt+v')
