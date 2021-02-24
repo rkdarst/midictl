@@ -110,7 +110,7 @@ def find_pulse_basic(sel):
     if sel.it is not None:
         # Filtering for items
         for src in item_list():
-            src.card = card_lookup[getattr(src, type_)]
+            src.card_object = card_lookup[getattr(src, type_)]
             yield src
     else:
         # Filtering for cards
@@ -120,15 +120,15 @@ def find_pulse_basic(sel):
 def pulse_filter_name(sel, it):
     """Filter PulseAudio based on the card name
     """
-    print(sel.name)
+    #print(sel.name)
     if not sel.name or sel.name == '*':
         yield from it
     for item in it:
-        if hasattr(item, 'card'):
-            card = item.card
+        if hasattr(item, 'card_object'):
+            card = item.card_object
         else:
             card = item
-        print(card, card.name)
+        #print(card, card.name)
         if sel.name in card.name:
             yield item
 
