@@ -229,7 +229,7 @@ def zoom_mute(msg, ignore_fast=None):
     return keystroke(msg, x11_name='Zoom Meeting$', stroke='alt+a')
 
 def zoom_video(msg):
-    return keystroke(msg, x11_name='^Zoom Meeting$', stroke='alt+v')
+    return keystroke(msg, x11_name='Zoom Meeting$', stroke='alt+v')
 
 def teams_mute(msg):
     return keystroke(msg,
