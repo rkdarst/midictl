@@ -55,8 +55,12 @@ DISPATCHERS = [
     (Dispatch(t=ON, ch=0, b= 1), partial(camera_exposure_auto)),
     (Dispatch(t=CC, ch=0, c= 6), partial(camera_exposure)),
 
+    # OBS
     #(Dispatch(t=ON, ch=1, b= 1), partial(obs_switch, scene='Title card')),
     #(Dispatch(t=ON, ch=1, b= 5), partial(obs_switch, scene='Gallery')),
     #(Dispatch(t=ON, ch=1, b= 2), partial(obs_switch, scene='Desktop (local)+camera')),
     #(Dispatch(t=ON, ch=1, b= 6), partial(obs_switch, scene='Desktop (remote)+camera (1)')),
+    #(Dispatch(t=CC, ch=0, c= 8), partial(obs_text_clock, source='Title')),
+    #(Dispatch(t=ON, ch=0, b= 2), partial(obs_mute, source=['A_Desktop Audio', 'Yeti'])),
+    #(Dispatch(t=ON, ch=0, b= 2), partial(obs_scene_item_visible, item=['HackMD capture'])),
     ]

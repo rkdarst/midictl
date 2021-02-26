@@ -3,6 +3,7 @@ from collections import namedtuple
 from functools import partial
 import glob
 import os
+import re
 import subprocess
 import sys
 import time
@@ -237,7 +238,7 @@ def teams_mute(msg):
                      stroke='ctrl+shift+m')
 
 
-#
+# https://github.com/Elektordi/obs-websocket-py
 from obswebsocket import obsws, requests as obs_requests
 OBS = obsws("localhost", 4444, "password")
 def obs_switch(msg, scene):
@@ -245,6 +246,57 @@ def obs_switch(msg, scene):
     OBS.call(obs_requests.SetCurrentScene(scene))
     OBS.disconnect()
 
+def obs_mute(msg, source, mute=None):
+    """Toggle or set mute
+
+    if the argument `mute` is None, toggle.  Otherwise set it to this
+    value.  If source is a list and reuest toggling, get the state of
+    the first source, toggle it, and set all sources to that value.
+    """
+    if not isinstance(source, (list,tuple)):
+        # Single source
+        if mute is None:
+            OBS.call(obs_requests.ToggleMute(source))
+        else:
+            OBS.call(obs_requests.SetMute(source, mute=mute))
+    else:
+        # Multiple devices.  Get the mute status of the first one, invert it,
+        # and set all to that status.
+        if mute is None:
+            mute = not OBS.call(obs_requests.GetMute(source[0])).getMuted()
+        for src in source:
+            OBS.call(obs_requests.SetMute(src, mute=mute))
+
+
+def obs_scene_item_visible(msg, item, visible=None):
+    """Toggle or set scene item visibility
+
+    This works just like `obs_mute`, but for scene item visibility.
+    """
+    if not isinstance(item, (list,tuple)):
+        item = [item]
+    if visible is None:
+        visible = not OBS.call(obs_requests.GetSceneItemProperties(item[0])).getVisible()
+    for item_ in item:
+        OBS.call(obs_requests.SetSceneItemProperties(item_, visible=visible))
+
+
+OBS.connect()
+def obs_text_clock(msg, source):
+    ret = OBS.call(obs_requests.GetTextFreetype2Properties(source))
+    text = ret.getText()
+    new_time = int(msg.value/127 * 59)
+    def replace(m):
+        return "{0}{1:02d}{2}".format(m.group(1), new_time, m.group(3))
+    new_text = re.sub(r'([xX?]{2}:)(\d{2})(\s+|$)', replace, text)
+    ret = OBS.call(obs_requests.GetTextFreetype2Properties(source))
+    #OBS.disconnect()
+
+
+# External processes
+def spawn(msg, cmd):
+    # Note: this has not been tested,
+    subprocess.Popen(cmd, flags=subprocess.DETACHED_PROCESS)
 
 
 # t = type ('note_on', 'note_off', 'control_change')
