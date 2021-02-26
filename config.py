@@ -54,8 +54,9 @@ DISPATCHERS = [
 
 
     # Camera exposure
-    (Dispatch(t=ON, ch=0, b= 1), partial(camera_exposure_auto)),
-    (Dispatch(t=CC, ch=0, c= 6), partial(camera_exposure)),
+    #(Dispatch(t=ON, ch=0, b= 1), partial(camera_exposure_auto)),
+    (Dispatch(t=CC, ch=0, c= 6, val=Not(0)), partial(camera_exposure)),
+    (Dispatch(t=CC, ch=0, c= 6, val=0), partial(camera_exposure_auto)),
 
     # OBS
     #(Dispatch(t=ON, ch=1, b= 1), partial(obs_switch, scene='Title card')),
