@@ -74,6 +74,8 @@ def handle(msg):
           and (dis.c  is None or dis.c == getattr(msg, 'control', None)) \
           and (dis.p  is None or dis.p == getattr(msg, 'program', None)) \
           and (dis.b  is None or BUTTONMAP[msg.channel][dis.b] == getattr(msg, 'note', None)) \
+          and (dis.val is None or dis.val == getattr(msg, 'value', None)) \
+          and (dis.vel is None or dis.vel == getattr(msg, 'velocity', None)) \
           :
             if isinstance(func, partial):
                 print("  -->", func.func.__name__, func.args, func.keywords)
@@ -308,8 +310,8 @@ def spawn(msg, cmd):
 # n = note (int)
 # c = control (int)
 Dispatch = namedtuple('Dispatch',
-                      ['t', 'ch', 'n', 'c', 'p', 'b'],
-                      defaults=[None, None, None, None, None, None])
+                      ['t', 'ch', 'n', 'c', 'p', 'b', 'val', 'vel'],
+                      defaults=[None, None, None, None, None, None, None, None])
 
 # Select PulseAudio devices.
 # t = 'source', 'sink'.  Select either sources or sinks.
@@ -318,6 +320,18 @@ Dispatch = namedtuple('Dispatch',
 Selector = namedtuple('Selector',
                       ['t', 'name', 'it', 'desc', 'last'],
                       defaults=[None, None, None, None, None])
+class Not:
+    """Equality compariason returns true if values are not equal"""
+    def __init__(self, x):
+        self.value = x
+    def __eq__(self, other):
+        return not self.value == other
+class Range:
+    """Equality compariason returns true if values are not equal"""
+    def __init__(self, low, high):
+        self.low, self.high = low, hig
+    def __eq__(self, other):
+        return self.low <= other < self.high
 # The definitions of the 't' argument of the Selector
 ON = 'note_on'
 OFF = 'note_off'
