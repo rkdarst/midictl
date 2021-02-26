@@ -259,6 +259,7 @@ def obs_mute(msg, source, mute=None):
     value.  If source is a list and reuest toggling, get the state of
     the first source, toggle it, and set all sources to that value.
     """
+    OBS.connect()
     if not isinstance(source, (list,tuple)):
         # Single source
         if mute is None:
@@ -272,6 +273,7 @@ def obs_mute(msg, source, mute=None):
             mute = not OBS.call(obs_requests.GetMute(source[0])).getMuted()
         for src in source:
             OBS.call(obs_requests.SetMute(src, mute=mute))
+    OBS.disconnect()
 
 
 def obs_scene_item_visible(msg, item, visible=None):
@@ -279,16 +281,18 @@ def obs_scene_item_visible(msg, item, visible=None):
 
     This works just like `obs_mute`, but for scene item visibility.
     """
+    OBS.connect()
     if not isinstance(item, (list,tuple)):
         item = [item]
     if visible is None:
         visible = not OBS.call(obs_requests.GetSceneItemProperties(item[0])).getVisible()
     for item_ in item:
         OBS.call(obs_requests.SetSceneItemProperties(item_, visible=visible))
+    OBS.disconnect()
 
 
-OBS.connect()
 def obs_text_clock(msg, source):
+    OBS.connect()
     ret = OBS.call(obs_requests.GetTextFreetype2Properties(source))
     text = ret.getText()
     new_time = int(msg.value/127 * 59)
@@ -296,7 +300,7 @@ def obs_text_clock(msg, source):
         return "{0}{1:02d}{2}".format(m.group(1), new_time, m.group(3))
     new_text = re.sub(r'([xX?]{2}:)(\d{2})(\s+|$)', replace, text)
     ret = OBS.call(obs_requests.GetTextFreetype2Properties(source))
-    #OBS.disconnect()
+    OBS.disconnect()
 
 
 # External processes
