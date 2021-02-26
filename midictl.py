@@ -207,6 +207,10 @@ def keystroke(msg, x11_name, stroke):
       - focus the other window
       - send the keystroke
       - re-focus the original window
+
+    TODO:
+    - How to find window name?
+    - Search by other tools
     """
     # WARNING: this prints an error if the window is not visible on the screen.
     cmd = ['xdotool', 'search', '--name', x11_name,
@@ -314,7 +318,7 @@ Dispatch = namedtuple('Dispatch',
 Selector = namedtuple('Selector',
                       ['t', 'name', 'it', 'desc', 'last'],
                       defaults=[None, None, None, None, None])
-
+# The definitions of the 't' argument of the Selector
 ON = 'note_on'
 OFF = 'note_off'
 CC = 'control_change'
