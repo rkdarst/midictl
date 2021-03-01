@@ -144,7 +144,7 @@ def pulse_filter_name(sel, it):
         else:
             card = item
         #print(card, card.name)
-        if sel.name in card.name:
+        if re.search(sel.name, card.name):
             yield item
 
 def pulse_filter_it(sel, it):
@@ -153,7 +153,7 @@ def pulse_filter_it(sel, it):
     if sel.it is None or sel.it == '*':
         yield from it
     for item in it:
-        if sel.it in src.proplist['application.process.binary']:
+        if re.search(src.proplist['application.process.binary'], sel.it):
             yield item
 
 def pulse_filter_last(sel, it):
@@ -176,7 +176,6 @@ def mute(msg, sel, state=None):
             new_mute = state
         else:
             new_mute = not mute
-        print(new_mute)
         P.mute(source, new_mute)
 
 def volume(msg, sel, low=0, high=1):
@@ -191,15 +190,21 @@ def pulse_move(msg, sel, move_to, counter=None):
         counter = hash((sel, move_to))
     count = COUNTER[counter]
     """Move a PulseAudio device to a different card"""
+    if isinstance(move_to, (tuple, list)):
+        move_to = move_to[count%len(move_to)]
     speaker = next(iter(find_pulse(move_to)))
-    print(speaker)
     for source in find_pulse(sel):
-        print(source)
         try:
-            P.sink_input_move(source.index, speaker.index)
+            if move_to.t == 'sink':
+                P.sink_input_move(source.index, speaker.index)
+            else:
+                P.source_output_move(source.index, speaker.index)
         except:
             traceback.print_exc()
-    P.sink_default_set(speaker)
+    if move_to.t == 'sink':
+        P.sink_default_set(speaker)
+    else:
+        P.source_default_set(speaker)
 
 
 # v4l cameras exposures

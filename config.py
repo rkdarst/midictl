@@ -1,4 +1,11 @@
-mic = Selector(t='source', name='USB_Advanced', it='*')
+# Inputs
+mic = Selector(t='source', name='input.*USB_Advanced')
+camera = Selector(t='source', name='input.*C922')
+headset_mic = Selector(t='source', name='input.*HyperX')
+mic_all = mic._replace(it='*')
+camera_all = camera._replace(it='*')
+headset_mic_all = headset_mic._replace(it='*')
+# Outputs
 hdmi = Selector(t='sink', name='hdmi')
 hdmi_all = Selector(t='sink', name='hdmi', it='*')
 headphones = Selector(t='sink', name='HyperX')
@@ -20,14 +27,14 @@ BUTTONMAP = {
 DISPATCHERS = [
     # Microphones
     # toggle:
-    #(Dispatch(t=ON, ch=0, n=43), partial(mute, sel=mic)),
-    #(Dispatch(t=ON, ch=0, b=4), partial(mute, sel=mic, state=False)),
-    #(Dispatch(t=OFF,ch=0, b=4), partial(mute, sel=mic, state=True)),
+    #(Dispatch(t=ON, ch=0, n=43), partial(mute, sel=mic_all)),
+    #(Dispatch(t=ON, ch=0, b=4), partial(mute, sel=mic_all, state=False)),
+    #(Dispatch(t=OFF,ch=0, b=4), partial(mute, sel=mic_all, state=True)),
     # PTT:
-    #(Dispatch(t=ON, ch=0, b=3), partial(mute, sel=mic, state=False)),
-    #(Dispatch(t=OFF,ch=0, b=3), partial(mute, sel=mic, state=True)),
+    #(Dispatch(t=ON, ch=0, b=3), partial(mute, sel=mic_all, state=False)),
+    #(Dispatch(t=OFF,ch=0, b=3), partial(mute, sel=mic_all, state=True)),
     # volume:
-    (Dispatch(t=CC,        c= 5), partial(volume, sel=mic)),
+    (Dispatch(t=CC,        c= 5), partial(volume, sel=mic_all)),
 
     # Zoom microphone mute toggle
     (Dispatch(t=ON, ch=0, b=4), partial(zoom_mute, ignore_fast=70)),
@@ -47,10 +54,14 @@ DISPATCHERS = [
     (Dispatch(t=CC, ch=0, c= 3), partial(volume, sel=hdmi_all._replace(last=False), low=0, high=.7)),
 
     # Moving speakers between sources
-    (Dispatch(t=ON, ch=0, b= 5), partial(pulse_move, sel=Selector(t='sink', it='*'), move_to=headphones)),
-    (Dispatch(t=ON, ch=0, b= 6), partial(pulse_move, sel=Selector(t='sink', it='*'), move_to=hdmi)),
-    (Dispatch(t=ON, ch=3, b= 1), partial(pulse_move, sel=Selector(t='sink', it='*'), move_to=hdmi)),
-    (Dispatch(t=ON, ch=3, b= 5), partial(pulse_move, sel=Selector(t='sink', it='*'), move_to=headphones)),
+    #(Dispatch(t=ON, ch=0, b= 5), partial(pulse_move, sel=Selector(t='sink', it='*'), move_to=headphones)),
+    #(Dispatch(t=ON, ch=0, b= 6), partial(pulse_move, sel=Selector(t='sink', it='*'), move_to=hdmi)),
+    #(Dispatch(t=ON, ch=3, b= 1), partial(pulse_move, sel=Selector(t='sink', it='*'), move_to=hdmi)),
+    #(Dispatch(t=ON, ch=3, b= 5), partial(pulse_move, sel=Selector(t='sink', it='*'), move_to=headphones)),
+    (Dispatch(t=ON, ch=0, b= 5), partial(pulse_move, sel=Selector(t='sink', it='*'), move_to=(hdmi, headphones))),
+    (Dispatch(t=ON, ch=3, b= 5), partial(pulse_move, sel=Selector(t='sink', it='*'), move_to=(hdmi, headphones))),
+    # Move microphone between sources
+    (Dispatch(t=ON, ch=0, b= 1), partial(pulse_move, sel=Selector(t='source', it='*'), move_to=(mic, camera, headset_mic))),
 
 
     # Camera exposure
