@@ -1,5 +1,7 @@
 import argparse
+import collections
 from collections import namedtuple
+import functools
 from functools import partial
 import glob
 import os
@@ -82,6 +84,16 @@ def handle(msg):
             else:
                 print("  -->", func.__name__)
             func(msg)
+
+class Counter:
+    def __init__(self):
+        self._data = collections.defaultdict(lambda: -1)
+    def __getitem__(self, name):
+        self._data[name] += 1
+        return self._data[name]
+COUNTER = Counter()
+
+
 
 def find_pulse(sel):
     """Find PulseAudio devices matching a certain selector.
@@ -174,7 +186,10 @@ def volume(msg, sel, low=0, high=1):
         P.volume_set_all_chans(source, volume)
 
 
-def pulse_move(msg, sel, move_to):
+def pulse_move(msg, sel, move_to, counter=None):
+    if counter is None:
+        counter = hash((sel, move_to))
+    count = COUNTER[counter]
     """Move a PulseAudio device to a different card"""
     speaker = next(iter(find_pulse(move_to)))
     print(speaker)
