@@ -1,23 +1,128 @@
 # Act based on MIDI events
 
-Usage: `python midictl.py`.  Note that this opens the raw `/dev/midi*`
-device, to avoid having to 
 
-Programming:
+## Installation and basic usage
 
-The `DISPATCHERS` list is pairs of (dispatch_selector, callback_function)
-pairs.  Functions do various things.
+Installation: The package is currently not installable, but will be
+made into a Python package later.
 
-`Dispatch` is the dispatch selector, it is a named tuple with
+Usage: `python midictl.py [-c config.py] [midi_device]`.  Note that
+this opens the raw `/dev/midi*` device, to avoid having to install
+some compiled MIDI libraries.
+
+## Features
+
+* Restarts when config changes (but loses one event)
+
+
+
+## Architecture and configuration
+
+The main event loop listens for MIDI events coming in.  For each
+events, it searches the `DISPATCHERS` list, which is pairs of
+(dispatch_selector, callback_function).  Any row which matches the
+dispatch_selector is called as `callback_function(msg)`, where `msg`
+is the MIDI event from the mido library.  Functions can do whatever.
+
+The namedtuple class `Dispatch` is the dispatch selector, which has
 properties `type`, `channel`, `note`, `control` which match with MIDI
-events.
+events.  All given selectors must match (AND).  To implement an OR,
+one usually adds multiple similar selectors to `DISPATCHERS`.
 
-Events you can trigger are currently:
+For an example configuration, see `config.py`
+
+
+
+## Available events
+
+The following events can be triggered
+
+* `mute`: Mute PulseAudio devices
+* `volume`: Adjust PulseAudio volumes
+* `pulse_move`: Move PulseAudio inputs/outputs to different cards
+* V4L camera exposure
+  * `camera_exposure`: Set camera exposure to value
+  * `camera_exposure_auto`: Set camera exposure to auto mode
+* `keystroke`: Send a keystroke to an X11 application.  Several
+  pre-made bindings are:
+  * `zoom_mute`: Toggle Zoom application mute
+  * `zoom_video`: Toggle Zoom application video
+  * `teams_mute`: Toggle Microsoft Teams mute in Chrome web browser.
+* OBS
+  * `obs_switch`: Switch OBS scenes
 
 * PulseAudio mutes and volume changes. `Selector` is namedtuple which
   can select which pulse devices to operate on,
 
 
-# Status
 
-Alpha, active development.
+## Examples
+
+Turning control knob 5 adjusts the microphone volume for all items on
+the PulseAudio source that contains `USB_Advanced` in the name.
+
+```python
+mic = Selector(t='source', name='USB_Advanced', it='*')
+DISPATCHERS = [
+    (Dispatch(t=CC, c= 5), partial(volume, sel=mic)),
+]
+```
+
+Mute the HDMI PluseAudio device (contains 'hdmi' in the PulseAudio
+name), when button 7 is pressed on channel 0.  Instead of defining the
+button by note, set up an indirect BUTTONMAP, so that different MIDI
+channels have consistent button names, even if their notes are
+inconsistent.  This saves re-programming the device just for this
+purpose.
+
+```python
+BUTTONMAP = {
+    # channel: [note_for_button_id]
+    0: [None, 36, 37, 38, 39, 40, 41, 42, 43],
+    1: [None, 35, 36, 42, 39, 37, 38, 46, 44],
+    2: [None, 60, 62, 64, 65, 67, 69, 71, 72],
+    3: [None, 36, 38, 40, 41, 43, 45, 47, 48],
+    }
+
+hdmi = Selector(t='sink', name='hdmi'),
+DISPATCHERS = [
+    (Dispatch(t=ON, ch=0, b= 7), partial(mute, sel=hdmi)),
+]
+```
+
+Toggle Zoom mute, when you push note 43 on channel 0.
+
+```python
+DISPATCHERS = [
+    (Dispatch(t=ON, ch=0, n=43), zoom_mute),
+]
+```
+
+Turning control knob 6 on channel 0 will adjust the camera exposure
+setting via the v4l2 Linux camera system.  If the knob is turned to
+zero, it will go to auto-mode.  If you turn it to anything else, it
+will adjust the exposure
+
+```python
+DISPATCHERS = [
+    (Dispatch(t=CC, ch=0, c= 6, val=Not(0)), partial(camera_exposure, low=50, high=500)),
+    (Dispatch(t=CC, ch=0, c= 6, val=0), camera_exposure_auto),
+]
+```
+
+Toggle OBS studio scenes when pushing buttons on channel 1, via the
+OBS websocket plugin-in.
+
+```python
+OBS = obsws("localhost", 4444, "password")
+DISPATCHERS = [
+    (Dispatch(t=ON, ch=1, b= 1), partial(obs_switch, scene='Title card')),
+    (Dispatch(t=ON, ch=1, b= 5), partial(obs_switch, scene='Gallery')),
+]
+```
+
+
+
+## Status
+
+Alpha, active development.  But works and somewhat stable.

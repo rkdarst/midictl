@@ -34,7 +34,7 @@ DISPATCHERS = [
     #(Dispatch(t=ON, ch=0, b=3), partial(mute, sel=mic_all, state=False)),
     #(Dispatch(t=OFF,ch=0, b=3), partial(mute, sel=mic_all, state=True)),
     # volume:
-    (Dispatch(t=CC,        c= 5), partial(volume, sel=mic_all)),
+    (Dispatch(t=CC,ch=Not(2), c= 5), partial(volume, sel=mic_all)),
 
     # Zoom microphone mute toggle
     (Dispatch(t=ON, ch=0, b=4), partial(zoom_mute, ignore_fast=70)),
@@ -68,13 +68,39 @@ DISPATCHERS = [
     #(Dispatch(t=ON, ch=0, b= 1), partial(camera_exposure_auto)),
     (Dispatch(t=CC, ch=0, c= 6, val=Not(0)), partial(camera_exposure)),
     (Dispatch(t=CC, ch=0, c= 6, val=0), partial(camera_exposure_auto)),
+    (Dispatch(t=CC, ch=0, c= 7), camera_gain),
 
-    # OBS
-    #(Dispatch(t=ON, ch=1, b= 1), partial(obs_switch, scene='Title card')),
-    #(Dispatch(t=ON, ch=1, b= 5), partial(obs_switch, scene='Gallery')),
-    #(Dispatch(t=ON, ch=1, b= 2), partial(obs_switch, scene='Desktop (local)+camera')),
-    #(Dispatch(t=ON, ch=1, b= 6), partial(obs_switch, scene='Desktop (remote)+camera (1)')),
-    #(Dispatch(t=CC, ch=0, c= 8), partial(obs_text_clock, source='Title')),
-    #(Dispatch(t=ON, ch=0, b= 2), partial(obs_mute, source=['A_Desktop Audio', 'Yeti'])),
-    #(Dispatch(t=ON, ch=0, b= 2), partial(obs_scene_item_visible, item=['HackMD capture'])),
+    # Camera exposure
+    (Dispatch(t=CC, ch=2, c= 5, val=Not(0)), camera_wb_temp),
+    (Dispatch(t=CC, ch=2, c= 5, val=0), camera_wb_auto),
+    (Dispatch(t=CC, ch=2, c= 6), camera_brightness),
+    (Dispatch(t=CC, ch=2, c= 2), camera_contrast),
+    (Dispatch(t=CC, ch=2, c= 7), camera_saturation),
+    (Dispatch(t=CC, ch=2, c= 3), camera_sharpness),
+    (Dispatch(t=CC, ch=2, c= 8, val=Not(0)), partial(camera_exposure)),
+    (Dispatch(t=CC, ch=2, c= 8, val=0), partial(camera_exposure_auto)),
+    (Dispatch(t=CC, ch=2, c= 4), camera_gain),
     ]
+
+TITLE = 'Title card'
+GALLERY = 'Gallery'
+LSCREEN = 'Desktop (local)+camera'
+RSCREEN = 'Desktop (remote)+camera'
+OBS_MICS = ['A_Desktop Audio', 'Yeti']
+PIP = '_Zoom people overlay'
+
+DISPATCHERS +=[
+    # OBS
+    (Dispatch(t=ON, ch=1, b= 1), partial(obs_switch, scene='Title card')),
+    (Dispatch(t=ON, ch=1, b= 5), partial(obs_switch, scene='Gallery')),
+    (Dispatch(t=ON, ch=1, b= 2), partial(obs_switch, scene='Desktop (local)+camera')),
+    (Dispatch(t=ON, ch=1, b= 6), partial(obs_switch, scene='Desktop (remote)+camera')),
+    #(Dispatch(t=CC, ch=1, c= 8), partial(rate_limit(rate=.1)(obs_text_clock), source='Title')),
+    (Dispatch(t=ON, ch=1, b= 4), partial(obs_mute, source=['A_Desktop Audio', 'Yeti'])),
+    #(Dispatch(t=ON, ch=1, b= 2), partial(obs_scene_item_visible, item=['HackMD capture'])),
+    (Dispatch(t=CC, ch=1, c= 6, val=Not(0)), partial(camera_exposure)),
+    (Dispatch(t=CC, ch=1, c= 6, val=0), partial(camera_exposure_auto)),
+    (Dispatch(t=CC, ch=1, c= 7), camera_gain),
+    (Dispatch(t=CC, ch=1, c= 8), partial(obs_scale_source, scene='Desktop (local)+camera', source='_Zoom people overlay')),
+    (Dispatch(t=CC, ch=1, c= 8), partial(obs_scale_source, scene='Desktop (remote)+camera', source='_Zoom people overlay')),
+]

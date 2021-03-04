@@ -93,6 +93,62 @@ class Counter:
         return self._data[name]
 COUNTER = Counter()
 
+RATE_LIMIT_STATE = collections.defaultdict(lambda: {'last_time': [], 'last_msg': None, 'lock': threading.Lock()})
+import threading
+def rate_limit(rate=.5):
+    """Decorator to limit rate a function can be called.
+
+    In addition to rate limiting, when it is called, it is always called
+    with the _last_ value.  In addition, ensure it is called with that
+    last value.  Thus, we can't drop calls that occur too fast, but we
+    have to keep a memory of the value passed, and make sure that we run
+    it on that final value at least once.  This happens by starting a
+    callback for each dropped function (once per interval), which runs
+    (on the most recent value) at the end of that interval.
+
+    This should probably be refactored, this was my first hack attempt
+    while experimenting with it.
+    """
+    def wrapper(f):
+        # Gets
+        @functools.wraps(f)
+        def invoke(msg, *args, RLID=None, **kwargs):
+            if RLID is not None:
+                ID = RLID
+            else:
+                ID = hash(tuple(kwargs.items()))
+            state = RATE_LIMIT_STATE[ID]
+            now = time.time()
+            last_time = state['last_time'] = [ t for t in state['last_time'] if t+rate > now ]
+            #print(last_time)
+            if not last_time:
+                #print('... running')
+                # append last_time
+                last_time.append(now)
+                # run right now
+                T = threading.Thread(target=f, args=(msg,)+args, kwargs=kwargs, daemon=True)
+                T.start()
+            elif last_time[-1] > now:
+                #print('... already queued')
+                state['last_msg'] = msg
+                return
+            else:
+                #print('... queuing')
+                # append last_time
+                last_time.append(now+rate)
+                state['last_msg'] = msg
+                # delay invoke
+                def delay_invoke(*args, **kwargs):
+                    #print("delay_invoke")
+                    time.sleep(rate)
+                    f(state['last_msg'], *args, **kwargs)
+                    #print("running")
+                T = threading.Thread(target=delay_invoke, args=args, kwargs=kwargs, daemon=True)
+                T.start()
+
+        return invoke
+    return wrapper
+
 
 
 def find_pulse(sel):
@@ -209,15 +265,27 @@ def pulse_move(msg, sel, move_to, counter=None):
 
 # v4l cameras exposures
 #  Requirements: v4l2-ctl command line utility installed (debian: v4l-utils)
-def camera_exposure(msg, low=0, high=500, control='exposure_auto=1,exposure_absolute=%s'):
+def v4l2_set(msg, control, low=0, high=255, value=None, zero=None):
     """Use v4l2 to adjust exposure"""
-    exposure = low + (high-low)*msg.value/127
-    cmd = ['v4l2-ctl', '--set-ctrl', control%exposure]
+    if zero is not None and getattr(msg, 'value', None) == 0:
+        value = zero
+    elif hasattr(msg, 'value'):
+        value = low + (high-low)*msg.value/127
+    cmd = ['v4l2-ctl', '--set-ctrl', control%{'value':value}]
     subprocess.call(cmd)
+def camera_exposure(msg, low=0, high=1000, control='exposure_auto=1,exposure_absolute=%(value)s'):
+    """Use v4l2 to adjust exposure"""
+    return v4l2_set(msg, low=low, high=high, control=control)
 def camera_exposure_auto(msg, control='exposure_auto=3'):
     """Use v4l2 to set exposure to auto-mode"""
-    cmd = ['v4l2-ctl', '--set-ctrl', control]
-    subprocess.call(cmd)
+    return v4l2_set(msg, control=control)
+camera_brightness = partial(v4l2_set, control='brightness=%(value)s', zero=128)
+camera_contrast = partial(v4l2_set, control='contrast=%(value)s', zero=128)
+camera_saturation = partial(v4l2_set, control='saturation=%(value)s', zero=128)
+camera_sharpness = partial(v4l2_set, control='sharpness=%(value)s', zero=128)
+camera_gain = partial(v4l2_set, control='gain=%(value)s', zero=64)
+camera_wb_temp = partial(v4l2_set, control='white_balance_temperature_auto=0,white_balance_temperature=%(value)s', low=2000, high=6500)
+camera_wb_auto = partial(v4l2_set, control='white_balance_temperature_auto=1')
 
 
 
@@ -267,19 +335,33 @@ def teams_mute(msg):
 # https://github.com/Elektordi/obs-websocket-py
 from obswebsocket import obsws, requests as obs_requests
 OBS = obsws("localhost", 4444, "password")
-def obs_switch(msg, scene):
-    OBS.connect()
-    OBS.call(obs_requests.SetCurrentScene(scene))
-    OBS.disconnect()
 
-def obs_mute(msg, source, mute=None):
+def obs(f):
+    """Decorator to create OBS websocket connection per-call.
+
+    This is useful when you have async executaion.
+    """
+    @functools.wraps(f)
+    def new(*args, **kwargs):
+        OBS2 = obsws(OBS.host, OBS.port, OBS.password)
+        OBS2.connect()
+        ret = f(*args, **kwargs, OBS=OBS2)
+        OBS2.disconnect()
+        return ret
+    return new
+
+@obs
+def obs_switch(msg, scene, OBS):
+    OBS.call(obs_requests.SetCurrentScene(scene))
+
+@obs
+def obs_mute(msg, source, mute=None, OBS=None):
     """Toggle or set mute
 
     if the argument `mute` is None, toggle.  Otherwise set it to this
     value.  If source is a list and reuest toggling, get the state of
     the first source, toggle it, and set all sources to that value.
     """
-    OBS.connect()
     if not isinstance(source, (list,tuple)):
         # Single source
         if mute is None:
@@ -293,34 +375,52 @@ def obs_mute(msg, source, mute=None):
             mute = not OBS.call(obs_requests.GetMute(source[0])).getMuted()
         for src in source:
             OBS.call(obs_requests.SetMute(src, mute=mute))
-    OBS.disconnect()
 
 
-def obs_scene_item_visible(msg, item, visible=None):
+@obs
+def obs_scene_item_visible(msg, item, visible=None, OBS=None):
     """Toggle or set scene item visibility
 
     This works just like `obs_mute`, but for scene item visibility.
     """
-    OBS.connect()
+    OBS
     if not isinstance(item, (list,tuple)):
         item = [item]
     if visible is None:
         visible = not OBS.call(obs_requests.GetSceneItemProperties(item[0])).getVisible()
     for item_ in item:
         OBS.call(obs_requests.SetSceneItemProperties(item_, visible=visible))
-    OBS.disconnect()
 
 
-def obs_text_clock(msg, source):
-    OBS.connect()
+@obs
+def obs_text_clock(msg, source, OBS=None):
+    """Update the NN value of a xx:NN text message"""
     ret = OBS.call(obs_requests.GetTextFreetype2Properties(source))
     text = ret.getText()
     new_time = int(msg.value/127 * 59)
     def replace(m):
         return "{0}{1:02d}{2}".format(m.group(1), new_time, m.group(3))
     new_text = re.sub(r'([xX?]{2}:)(\d{2})(\s+|$)', replace, text)
-    ret = OBS.call(obs_requests.GetTextFreetype2Properties(source))
-    OBS.disconnect()
+    ret = OBS.call(obs_requests.SetTextFreetype2Properties(source, text=new_text))
+
+@rate_limit(.25)
+@obs
+def obs_scale_source(msg, source, scene=None, scale=None, low=0, high=1, OBS=None):
+    """Scale an OBS scene element.
+
+    This adjusts the scale of a scene element (obs terminology: source).
+    Internally, it seems that x_scale and y_scale are the internal
+    values, so we can directly set those.  To control the anchor point
+    of the scaling, edit the transform in OBS.
+    """
+    if scale is None:
+        scale = low + (high-low)*(msg.value/127)
+    ret = OBS.call(obs_requests.GetSceneItemProperties(source, scene_name=scene))
+    #print(ret)
+    #width = (msg.value/255) * ret.getSourceWidth()
+    ret = OBS.call(obs_requests.SetSceneItemTransform(source, scene_name=scene, x_scale=scale, y_scale=scale, rotation=ret.getRotation()))
+    #print(ret)
+
 
 
 # External processes
@@ -328,6 +428,11 @@ def spawn(msg, cmd):
     # Note: this has not been tested,
     subprocess.Popen(cmd, flags=subprocess.DETACHED_PROCESS)
 
+
+
+@rate_limit()
+def echo(msg, text="TEST"):
+    print(text, msg)
 
 # t = type ('note_on', 'note_off', 'control_change')
 # ch = channel (int)
