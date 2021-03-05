@@ -209,7 +209,7 @@ def pulse_filter_it(sel, it):
     if sel.it is None or sel.it == '*':
         yield from it
     for item in it:
-        if re.search(src.proplist['application.process.binary'], sel.it):
+        if re.search(sel.it, item.proplist.get('application.name', '')):
             yield item
 
 def pulse_filter_last(sel, it):
