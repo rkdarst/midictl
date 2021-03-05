@@ -52,6 +52,8 @@ DISPATCHERS = [
     (Dispatch(t=CC,       c= 1), partial(volume, sel=headphones_all, low=0, high=.7)),
     (Dispatch(t=CC, ch=0, c= 2), partial(volume, sel=hdmi_all._replace(last=True), low=0, high=.7)),
     (Dispatch(t=CC, ch=0, c= 3), partial(volume, sel=hdmi_all._replace(last=False), low=0, high=.7)),
+    (Dispatch(t=CC,       c= 8), partial(volume, sel=Selector(t='sink', it='Chrome'), low=0, high=.7)),
+    (Dispatch(t=CC,       c= 4), partial(volume, sel=Selector(t='sink', it='ZOOM'), low=0, high=.7)),
 
     # Moving speakers between sources
     #(Dispatch(t=ON, ch=0, b= 5), partial(pulse_move, sel=Selector(t='sink', it='*'), move_to=headphones)),
@@ -62,7 +64,6 @@ DISPATCHERS = [
     (Dispatch(t=ON, ch=3, b= 5), partial(pulse_move, sel=Selector(t='sink', it='*'), move_to=(hdmi, headphones))),
     # Move microphone between sources
     (Dispatch(t=ON, ch=0, b= 1), partial(pulse_move, sel=Selector(t='source', it='*'), move_to=(mic, camera, headset_mic))),
-
 
     # Camera exposure
     #(Dispatch(t=ON, ch=0, b= 1), partial(camera_exposure_auto)),
@@ -95,9 +96,9 @@ DISPATCHERS +=[
     (Dispatch(t=ON, ch=1, b= 5), partial(obs_switch, scene='Gallery')),
     (Dispatch(t=ON, ch=1, b= 2), partial(obs_switch, scene='Desktop (local)+camera')),
     (Dispatch(t=ON, ch=1, b= 6), partial(obs_switch, scene='Desktop (remote)+camera')),
-    #(Dispatch(t=CC, ch=1, c= 8), partial(rate_limit(rate=.1)(obs_text_clock), source='Title')),
     (Dispatch(t=ON, ch=1, b= 4), partial(obs_mute, source=['A_Desktop Audio', 'Yeti'])),
     #(Dispatch(t=ON, ch=1, b= 2), partial(obs_scene_item_visible, item=['HackMD capture'])),
+    #(Dispatch(t=CC, ch=1, c= 8), partial(rate_limit(rate=.1)(obs_text_clock), source='Title')),
     (Dispatch(t=CC, ch=1, c= 6, val=Not(0)), partial(camera_exposure)),
     (Dispatch(t=CC, ch=1, c= 6, val=0), partial(camera_exposure_auto)),
     (Dispatch(t=CC, ch=1, c= 7), camera_gain),
