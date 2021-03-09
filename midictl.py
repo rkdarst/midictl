@@ -424,9 +424,9 @@ def obs_scale_source(msg, source, scene=None, scale=None, low=0, high=1, OBS=Non
 
 
 # External processes
-def spawn(msg, cmd):
+def call(msg, cmd):
     # Note: this has not been tested,
-    subprocess.Popen(cmd, flags=subprocess.DETACHED_PROCESS)
+    subprocess.Popen(cmd, shell=True)
 
 
 
