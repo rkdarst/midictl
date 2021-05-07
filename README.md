@@ -19,17 +19,19 @@ some compiled MIDI libraries.
 ## Architecture and configuration
 
 The main entry point is `listen`, which parses arguments, opens the
-device, listens to 
+device, listens to the MIDI device, and dispatches each event to the
+`handle` function.
 
-The main event loop listens for MIDI events coming in.  For each
-events, it searches the `DISPATCHERS` list, which is pairs of
+The `handle` function, for each
+event, it searches the `DISPATCHERS` list, which is pairs of
 (dispatch_selector, callback_function).  Any row which matches the
 dispatch_selector is called as `callback_function(msg)`, where `msg`
 is the MIDI event from the mido library.  Functions can do whatever.
 
 The namedtuple class `Dispatch` is the dispatch selector, which has
-properties `type`, `channel`, `note`, `control` which match with MIDI
-events.  All given selectors must match (AND).  To implement an OR,
+properties to select on midi events, for example "type" is `t`,
+"channel" is `ch`, "note" is `n`, and so on.  All given selectors must
+match (AND).  To implement an OR,
 one usually adds multiple similar selectors to `DISPATCHERS`.
 
 For an example configuration, see `config.py`
