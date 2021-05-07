@@ -30,17 +30,23 @@ def listen(argv):
     parser.add_argument('--config', '-c', nargs='*', default=['config.py'])
     args = parser.parse_args()
 
+    # Read config file, saving its modification time for automatic relead.
     CONFIG_MODIFICATION_TIME = os.stat(__file__).st_mtime
-
     for configfile in args.config:
         exec(open(configfile).read(), globals())
         CONFIG_MODIFICATION_TIME = max(CONFIG_MODIFICATION_TIME, os.stat(configfile).st_mtime)
 
+    # Open the device
     f = open(args.device_file, 'rb')
 
+    # Main loop
     parser = mido.Parser()
     start_time = time.time()
     while True:
+        # To prevent blocking and other problems, we (unfortunately) have to
+        # read byte-by-byte.  We do manual reading like this instead of some
+        # more direct method to prevent dependencies on other compiled Python
+        # extensions.
         b = f.read(1)
         # We need to flush any bytes remaining in the device file, or else they
         # will all be delivered now.
@@ -51,9 +57,6 @@ def listen(argv):
         parser.feed_byte(b)
         msg = parser.get_message()
         if msg:
-            print(msg)
-            handle(msg)
-
             # Restart script if config has been modified
             mtime = max(os.stat(fname).st_mtime
                         for fname in [__file__] + args.config)
@@ -62,12 +65,16 @@ def listen(argv):
                 print("Restarting to reload config...")
                 os.execv(sys.executable, [sys.executable] + sys.argv)
 
+            # Actual event handler
+            print(msg)
+            handle(msg)
+
 
 def handle(msg):
     """Dispatch a single message to any handlers.
 
     This function is called once per message, and matches all dispatch
-    filters.  Anything that matches all receives the event.
+    filters.  Anything that matches all of the filters receives the event.
     """
     for dis, func in DISPATCHERS:
         if    (dis.t  is None or dis.t == msg.type) \
@@ -85,13 +92,20 @@ def handle(msg):
                 print("  -->", func.__name__)
             func(msg)
 
+
 class Counter:
+    """Incrementing counter with dict-like interface
+
+    This is use to record number of button presses, to implement things
+    such as toggles.
+    """
     def __init__(self):
         self._data = collections.defaultdict(lambda: -1)
     def __getitem__(self, name):
         self._data[name] += 1
         return self._data[name]
 COUNTER = Counter()
+
 
 RATE_LIMIT_STATE = collections.defaultdict(lambda: {'last_time': [], 'last_msg': None, 'lock': threading.Lock()})
 import threading
@@ -109,8 +123,9 @@ def rate_limit(rate=.5):
     This should probably be refactored, this was my first hack attempt
     while experimenting with it.
     """
+    # This is currently kind of a hack and can probably be re-written
+    # completely later.
     def wrapper(f):
-        # Gets
         @functools.wraps(f)
         def invoke(msg, *args, RLID=None, **kwargs):
             if RLID is not None:
@@ -150,14 +165,19 @@ def rate_limit(rate=.5):
     return wrapper
 
 
-
+#
+# PulseAudio-related functions
+#
 def find_pulse(sel):
     """Find PulseAudio devices matching a certain selector.
 
-    Returns an iterator, filtered based on selection criteria."""
+    Returns an iterator over PulseAudio sources/sinks (or items attached
+    to the sources/sinks) which match certain criteria.
+    """
+    # First get a basic iterater, then filter the iterator progressively using
+    # three more functions.
     it = find_pulse_basic(sel)
     it = pulse_filter_name(sel, it)
-    #print('a', list(it))
     it = pulse_filter_it(sel, it)
     it = pulse_filter_last(sel, it)
     return it
@@ -223,7 +243,6 @@ def pulse_filter_last(sel, it):
     return items
 
 
-
 def mute(msg, sel, state=None):
     """Toggle or set mute"""
     for source in find_pulse(sel):
@@ -242,11 +261,18 @@ def volume(msg, sel, low=0, high=1):
 
 
 def pulse_move(msg, sel, move_to, counter=None):
+    """Move a pulse item to a differest source/sink
+
+    sel: selects the device
+    move_to: List of selectors to move the selected devices to
+    counter: optional, used to count button presses.
+
+    """
     if counter is None:
         counter = hash((sel, move_to))
     count = COUNTER[counter]
     """Move a PulseAudio device to a different card"""
-    if isinstance(move_to, (tuple, list)):
+    if isinstance(move_to, (tuple, list)) and not isinstance(move_to, Selector):
         move_to = move_to[count%len(move_to)]
     speaker = next(iter(find_pulse(move_to)))
     for source in find_pulse(sel):
@@ -262,8 +288,9 @@ def pulse_move(msg, sel, move_to, counter=None):
     else:
         P.source_default_set(speaker)
 
-
-# v4l cameras exposures
+#
+# v4l2 cameras control
+#
 #  Requirements: v4l2-ctl command line utility installed (debian: v4l-utils)
 def v4l2_set(msg, control, low=0, high=255, value=None, zero=None):
     """Use v4l2 to adjust exposure"""
@@ -286,6 +313,8 @@ camera_sharpness = partial(v4l2_set, control='sharpness=%(value)s', zero=128)
 camera_gain = partial(v4l2_set, control='gain=%(value)s', zero=64)
 camera_wb_temp = partial(v4l2_set, control='white_balance_temperature_auto=0,white_balance_temperature=%(value)s', low=2000, high=6500)
 camera_wb_auto = partial(v4l2_set, control='white_balance_temperature_auto=1')
+camera_pan = partial(v4l2_set, control='pan_absolute=%(value)s', low=-36000, high=36000, zero=0)
+camera_tilt = partial(v4l2_set, control='tilt_absolute=%(value)s', low=-36000, high=36000, zero=0)
 
 
 
@@ -334,6 +363,7 @@ def teams_mute(msg):
 
 # https://github.com/Elektordi/obs-websocket-py
 from obswebsocket import obsws, requests as obs_requests
+import obswebsocket.exceptions
 OBS = obsws("localhost", 4444, "password")
 
 def obs(f):
@@ -344,7 +374,11 @@ def obs(f):
     @functools.wraps(f)
     def new(*args, **kwargs):
         OBS2 = obsws(OBS.host, OBS.port, OBS.password)
-        OBS2.connect()
+        try:
+            OBS2.connect()
+        except obswebsocket.exceptions.ConnectionFailure as e:
+            print("Could not connect to OBS: %s"%str(e))
+            return None
         ret = f(*args, **kwargs, OBS=OBS2)
         OBS2.disconnect()
         return ret
@@ -383,13 +417,24 @@ def obs_scene_item_visible(msg, item, visible=None, OBS=None):
 
     This works just like `obs_mute`, but for scene item visibility.
     """
-    OBS
     if not isinstance(item, (list,tuple)):
         item = [item]
     if visible is None:
         visible = not OBS.call(obs_requests.GetSceneItemProperties(item[0])).getVisible()
     for item_ in item:
         OBS.call(obs_requests.SetSceneItemProperties(item_, visible=visible))
+
+@obs
+def obs_toggle_recording(msg, state=None, OBS=None):
+    """Toggle or set recording status
+    """
+    if state is None:
+        OBS.call(obs_requests.StartStopRecording())
+    elif state:
+        OBS.call(obs_requests.StartRecording())
+    else:
+        OBS.call(obs_requests.StopRecording())
+
 
 
 @obs
@@ -418,8 +463,11 @@ def obs_scale_source(msg, source, scene=None, scale=None, low=0, high=1, OBS=Non
     ret = OBS.call(obs_requests.GetSceneItemProperties(source, scene_name=scene))
     #print(ret)
     #width = (msg.value/255) * ret.getSourceWidth()
-    ret = OBS.call(obs_requests.SetSceneItemTransform(source, scene_name=scene, x_scale=scale, y_scale=scale, rotation=ret.getRotation()))
+    ret = OBS.call(obs_requests.SetSceneItemTransform(source, scene_name=scene, x_scale=scale, y_scale=scale, rotation=0))#ret.getRotation()))
     #print(ret)
+
+#@rate_limit(.25)
+
 
 
 
@@ -461,6 +509,12 @@ class Range:
         self.low, self.high = low, hig
     def __eq__(self, other):
         return self.low <= other < self.high
+class In:
+    """Equality compariason returns true if values are not equal"""
+    def __init__(self, *args):
+        self.items = args
+    def __eq__(self, other):
+        return other in self.items
 # The definitions of the 't' argument of the Selector
 ON = 'note_on'
 OFF = 'note_off'

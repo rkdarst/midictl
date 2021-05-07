@@ -25,6 +25,14 @@ BUTTONMAP = {
 
 # Program dispatches here.
 DISPATCHERS = [
+    # Moving audio between devices
+    (Dispatch(t=CC, c=105), partial(pulse_move, sel=Selector(t='sink', it='*'), move_to=hdmi)),
+    (Dispatch(t=CC, c=105), partial(call, cmd="pactl set-card-profile alsa_card.pci-0000_06_00.1 output:hdmi-stereo-extra3")),
+    (Dispatch(t=CC, c=106), partial(pulse_move, sel=Selector(t='sink', it='*'), move_to=headphones)),
+    (Dispatch(t=CC, c=101), partial(pulse_move, sel=Selector(t='source', it='*'), move_to=camera)),
+    (Dispatch(t=CC, c=102), partial(pulse_move, sel=Selector(t='source', it='*'), move_to=headset_mic)),
+    (Dispatch(t=CC, c=103), partial(pulse_move, sel=Selector(t='source', it='*'), move_to=mic)),
+
     # Microphones
     # toggle:
     #(Dispatch(t=ON, ch=0, n=43), partial(mute, sel=mic_all)),
@@ -37,10 +45,11 @@ DISPATCHERS = [
     (Dispatch(t=CC,ch=Not(2), c= 5), partial(volume, sel=mic_all)),
 
     # Zoom microphone mute toggle
-    (Dispatch(t=ON, ch=0, b=4), partial(zoom_mute, ignore_fast=70)),
+    (Dispatch(t=ON, ch=In(0,2), b=4), partial(zoom_mute, ignore_fast=70)),
     (Dispatch(t=ON, ch=0, b=4), partial(teams_mute)),
     (Dispatch(t=OFF,ch=0, b=4), partial(zoom_mute)),
     (Dispatch(t=OFF,ch=0, b=4), partial(teams_mute)),
+    # PTT
     (Dispatch(t=ON, ch=0, b=3), partial(zoom_mute)),
     (Dispatch(t=OFF,ch=0, b=3), partial(zoom_mute)),
     # Zoom video toggle
@@ -52,16 +61,18 @@ DISPATCHERS = [
     (Dispatch(t=CC,       c= 1), partial(volume, sel=headphones_all, low=0, high=.7)),
     (Dispatch(t=CC, ch=0, c= 2), partial(volume, sel=hdmi_all._replace(last=True), low=0, high=.7)),
     (Dispatch(t=CC, ch=0, c= 3), partial(volume, sel=hdmi_all._replace(last=False), low=0, high=.7)),
-    (Dispatch(t=CC,       c= 8), partial(volume, sel=Selector(t='sink', it='Chrome'), low=0, high=.7)),
-    (Dispatch(t=CC,       c= 4), partial(volume, sel=Selector(t='sink', it='ZOOM'), low=0, high=.7)),
+    #(Dispatch(t=CC,       c= 8), partial(volume, sel=Selector(t='sink', it='Chrome'), low=0, high=.7)),
+    #(Dispatch(t=CC,       c= 4), partial(volume, sel=Selector(t='sink', it='ZOOM'), low=0, high=.7)),
 
     # Moving speakers between sources
     #(Dispatch(t=ON, ch=0, b= 5), partial(pulse_move, sel=Selector(t='sink', it='*'), move_to=headphones)),
     #(Dispatch(t=ON, ch=0, b= 6), partial(pulse_move, sel=Selector(t='sink', it='*'), move_to=hdmi)),
     #(Dispatch(t=ON, ch=3, b= 1), partial(pulse_move, sel=Selector(t='sink', it='*'), move_to=hdmi)),
     #(Dispatch(t=ON, ch=3, b= 5), partial(pulse_move, sel=Selector(t='sink', it='*'), move_to=headphones)),
-    (Dispatch(t=ON, ch=0, b= 5), partial(pulse_move, sel=Selector(t='sink', it='*'), move_to=(hdmi, headphones))),
-    (Dispatch(t=ON, ch=3, b= 5), partial(pulse_move, sel=Selector(t='sink', it='*'), move_to=(hdmi, headphones))),
+    (Dispatch(t=ON, ch=0, b= 5), partial(pulse_move, sel=Selector(t='sink', it='*'), move_to=(headphones, hdmi))),
+    (Dispatch(t=ON, ch=3, b= 5), partial(pulse_move, sel=Selector(t='sink', it='*'), move_to=(headphones, hdmi))),
+    (Dispatch(t=ON, ch=0, b= 5), partial(call, cmd="pactl set-card-profile alsa_card.pci-0000_06_00.1 output:hdmi-stereo-extra3")),
+
     # Move microphone between sources
     (Dispatch(t=ON, ch=0, b= 1), partial(pulse_move, sel=Selector(t='source', it='*'), move_to=(mic, camera, headset_mic))),
 
@@ -70,6 +81,8 @@ DISPATCHERS = [
     (Dispatch(t=CC, ch=0, c= 6, val=Not(0)), partial(camera_exposure)),
     (Dispatch(t=CC, ch=0, c= 6, val=0), partial(camera_exposure_auto)),
     (Dispatch(t=CC, ch=0, c= 7), camera_gain),
+    (Dispatch(t=CC, ch=0, c= 8), camera_pan),
+    (Dispatch(t=CC, ch=0, c= 4), camera_tilt),
 
     # Camera exposure
     (Dispatch(t=CC, ch=2, c= 5, val=Not(0)), camera_wb_temp),
@@ -78,9 +91,9 @@ DISPATCHERS = [
     (Dispatch(t=CC, ch=2, c= 2), camera_contrast),
     (Dispatch(t=CC, ch=2, c= 7), camera_saturation),
     (Dispatch(t=CC, ch=2, c= 3), camera_sharpness),
-    (Dispatch(t=CC, ch=2, c= 8, val=Not(0)), partial(camera_exposure)),
-    (Dispatch(t=CC, ch=2, c= 8, val=0), partial(camera_exposure_auto)),
-    (Dispatch(t=CC, ch=2, c= 4), camera_gain),
+    #(Dispatch(t=CC, ch=2, c= 8, val=Not(0)), partial(camera_exposure)),
+    #(Dispatch(t=CC, ch=2, c= 8, val=0), partial(camera_exposure_auto)),
+    #(Dispatch(t=CC, ch=2, c= 4), camera_gain),
     ]
 
 TITLE = 'Title card'
@@ -90,18 +103,28 @@ RSCREEN = 'Desktop (remote)+camera'
 OBS_MICS = ['A_Desktop Audio', 'Yeti']
 PIP = '_Zoom people overlay'
 
+OBS = obsws("k8.zgib.net", 4445, "coderefinery2021may")
+
+
 DISPATCHERS +=[
     # OBS
-    (Dispatch(t=ON, ch=1, b= 1), partial(obs_switch, scene='Title card')),
+    (Dispatch(t=ON, ch=1, b= 1), partial(obs_switch, scene='Title')),
     (Dispatch(t=ON, ch=1, b= 5), partial(obs_switch, scene='Gallery')),
-    (Dispatch(t=ON, ch=1, b= 2), partial(obs_switch, scene='Desktop (local)+camera')),
-    (Dispatch(t=ON, ch=1, b= 6), partial(obs_switch, scene='Desktop (remote)+camera')),
-    (Dispatch(t=ON, ch=1, b= 4), partial(obs_mute, source=['A_Desktop Audio', 'Yeti'])),
+    (Dispatch(t=ON, ch=1, b= 2), partial(obs_switch, scene='Local')),
+    (Dispatch(t=ON, ch=1, b= 6), partial(obs_switch, scene='Remote')),
+    (Dispatch(t=ON, ch=1, b= 3), partial(obs_switch, scene='Notes')),
+    (Dispatch(t=ON, ch=1, b= 4), partial(obs_mute, source=['Yeti'])),
+    (Dispatch(t=ON, ch=1, b= 8), partial(obs_mute, source=['A_Desktop Audio'])),
     #(Dispatch(t=ON, ch=1, b= 2), partial(obs_scene_item_visible, item=['HackMD capture'])),
-    #(Dispatch(t=CC, ch=1, c= 8), partial(rate_limit(rate=.1)(obs_text_clock), source='Title')),
+    (Dispatch(t=CC, ch=1, c= 2), partial(rate_limit(rate=.1)(obs_text_clock), source='Clock')),
     (Dispatch(t=CC, ch=1, c= 6, val=Not(0)), partial(camera_exposure)),
     (Dispatch(t=CC, ch=1, c= 6, val=0), partial(camera_exposure_auto)),
     (Dispatch(t=CC, ch=1, c= 7), camera_gain),
-    (Dispatch(t=CC, ch=1, c= 8), partial(obs_scale_source, scene='Desktop (local)+camera', source='_Zoom people overlay')),
-    (Dispatch(t=CC, ch=1, c= 8), partial(obs_scale_source, scene='Desktop (remote)+camera', source='_Zoom people overlay')),
+    (Dispatch(t=CC, ch=1, c= 3), partial(obs_scale_source, scene='Local',  source='GalleryInsert')),
+    (Dispatch(t=CC, ch=1, c= 3), partial(obs_scale_source, scene='Remote', source='GalleryInsert')),
+    #(Dispatch(t=CC, ch=1, c= 3), partial(obs_scale_source, scene='Local',  source='_Camera', high=.5)),
+    #(Dispatch(t=CC, ch=1, c= 3), partial(obs_scale_source, scene='_Zoom people overlay', source='CameraS', high=.3)),
+    (Dispatch(t=CC, ch=1, c= 8), camera_pan),
+    (Dispatch(t=CC, ch=1, c= 4), camera_tilt),
+    #(Dispatch(t=CC, ch=1, c= 8), partial(obs_scale_source, scene='Remote', source='Camera2')),
 ]

@@ -18,6 +18,9 @@ some compiled MIDI libraries.
 
 ## Architecture and configuration
 
+The main entry point is `listen`, which parses arguments, opens the
+device, listens to 
+
 The main event loop listens for MIDI events coming in.  For each
 events, it searches the `DISPATCHERS` list, which is pairs of
 (dispatch_selector, callback_function).  Any row which matches the
@@ -56,7 +59,12 @@ The following events can be triggered
 
 
 
-## Examples
+## Configuration examples
+
+Config is by default read from a `config.py` file, which gets executed
+in the module namespace so has full control of everything.  Examples
+are below:
+
 
 Turning control knob 5 adjusts the microphone volume for all items on
 the PulseAudio source that contains `USB_Advanced` in the name.
