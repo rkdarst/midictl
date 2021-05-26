@@ -538,7 +538,7 @@ class Not:
 class Range:
     """Equality compariason returns true if values are not equal"""
     def __init__(self, low, high):
-        self.low, self.high = low, hig
+        self.low, self.high = low, high
     def __eq__(self, other):
         return self.low <= other < self.high
 class In:
