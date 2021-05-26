@@ -116,6 +116,7 @@ DISPATCHERS +=[
     (Dispatch(t=ON, ch=1, b= 4), partial(obs_mute, source=['Camera'])),
     (Dispatch(t=ON, ch=1, b= 4), partial(zoom_mute, ignore_fast=70)),
     (Dispatch(t=ON, ch=1, b= 8), partial(obs_mute, source=['A_Desktop Audio'])),
+    (Dispatch(t=ON, ch=1, b= 7), partial(obs_recording_time_copy)),
     #(Dispatch(t=ON, ch=1, b= 2), partial(obs_scene_item_visible, item=['HackMD capture'])),
     (Dispatch(t=CC, ch=1, c= 2), partial(rate_limit(rate=.1)(obs_text_clock), source='Clock')),
     (Dispatch(t=CC, ch=1, c= 6, val=Not(0)), partial(camera_exposure)),

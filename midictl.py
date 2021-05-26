@@ -466,6 +466,38 @@ def obs_scale_source(msg, source, scene=None, scale=None, low=0, high=1, OBS=Non
     ret = OBS.call(obs_requests.SetSceneItemTransform(source, scene_name=scene, x_scale=scale, y_scale=scale, rotation=0))#ret.getRotation()))
     #print(ret)
 
+@obs
+def obs_recording_time_copy(msg, OBS=None, selection='clipboard'):
+    """Copy current recording timestamp to clipboard
+
+    Copy current recording time to the clipboard.  This currently
+    depends on the xclip utility, so only works on Unix.  It also seems
+    to be about three seconds behind reality (unknown reason).  In some
+    sense this is useful, since it gives you some buffer.  It needs to
+    be investigated in the future, though.
+
+    selection: 'primary' or 'secondary' or 'clipboard'.
+    """
+    ret = OBS.call(obs_requests.GetRecordingStatus())
+    if not ret.getIsRecording():
+        return
+    timestamp = ret.getRecordTimecode() # string
+    #print(timestamp)
+    # convert to seconds
+    parts = timestamp.split(':')
+    seconds = float(parts[-1]) + float(parts[-2])*60 + float(parts[-3])*3600
+    # convert back to HH:MM:SS with better format
+    hours, seconds = divmod(seconds, 3600)
+    minutes, seconds = divmod(seconds, 60)
+    if hours:
+        timestamp = '%d:%02d:%02d'%(hours, minutes, seconds)
+    else:
+        timestamp ='%d:%02d'%(minutes, seconds)
+
+    selection = 'clipboard' # 'primary' or 'secondary' or 'clipboard'
+    subprocess.run(['xclip', '-in', '-selection', 'clipboard'],
+                   input=timestamp, encoding='utf8')
+
 #@rate_limit(.25)
 
 
