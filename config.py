@@ -54,13 +54,15 @@ DISPATCHERS = [
     (Dispatch(t=OFF,ch=0, b=3), partial(zoom_mute)),
     # Zoom video toggle
     (Dispatch(t=OFF,ch=0, b=8), partial(zoom_video)),
+    # Zoom raise/lower hand
+    (Dispatch(t=OFF,ch=0, b=2), partial(zoom_raisehand)),
 
     # Volumes, speakers
     (Dispatch(t=ON, ch=0, b= 7), partial(mute, sel=hdmi)),
-    (Dispatch(t=CC,       c= 1), partial(volume, sel=hdmi_all, low=0, high=.7)),
-    (Dispatch(t=CC,       c= 1), partial(volume, sel=headphones_all, low=0, high=.7)),
-    (Dispatch(t=CC, ch=0, c= 2), partial(volume, sel=hdmi_all._replace(last=True), low=0, high=.7)),
-    (Dispatch(t=CC, ch=0, c= 3), partial(volume, sel=hdmi_all._replace(last=False), low=0, high=.7)),
+    (Dispatch(t=CC,       c= 1), partial(volume, sel=hdmi, low=0, high=1)),
+    (Dispatch(t=CC,       c= 1), partial(volume, sel=headphones, low=0, high=1)),
+    (Dispatch(t=CC, ch=0, c= 2), partial(volume, sel=hdmi_all._replace(last=True), low=0, high=1)),
+    #(Dispatch(t=CC, ch=0, c= 3), partial(volume, sel=hdmi_all._replace(last=False), low=0, high=1)),
     #(Dispatch(t=CC,       c= 8), partial(volume, sel=Selector(t='sink', it='Chrome'), low=0, high=.7)),
     #(Dispatch(t=CC,       c= 4), partial(volume, sel=Selector(t='sink', it='ZOOM'), low=0, high=.7)),
 
@@ -96,43 +98,77 @@ DISPATCHERS = [
     #(Dispatch(t=CC, ch=2, c= 4), camera_gain),
     ]
 
+@rate_limit
+def zoom_placement(msg, RLID='zoom_placement'):
+    from subprocess import call
+    if msg.value < 1:
+        call(['xdotool', 'search', '--onlyvisible', '--name', '^Zoom Meeting$', 'windowmove', '4', '867'   , 'windowsize', '1190', '802', ])
+        call(['xdotool', 'search', '--onlyvisible', '--name', '^Zoom$',         'windowmove', '4536', '856', 'windowsize', '500', '414',  ])
+    elif msg.value < 10:
+        call(['xdotool', 'search', '--onlyvisible', '--name', '^Zoom Meeting$', 'windowmove', '1575', '867', 'windowsize', '1190', '802', ])
+        #call(['xdotool', 'search', '--onlyvisible', '--name', '^Zoom$',        'windowmove', '4536', '856', 'windowsize', '500', '414',  ])
+    elif msg.value < 20:
+        call(['xdotool', 'search', '--onlyvisible', '--name', '^Zoom Meeting$', 'windowmove', '4', '867'   , 'windowsize', '1190', '802', ])
+        call(['xdotool', 'search', '--onlyvisible', '--name', '^Zoom$',         'windowmove', '4536', '856', 'windowsize', '100%', '100%',  ])
+
+
+        #call(['xdotool', 'search', '--onlyvisible', '--name', '^Zoom$', 'windowsize', '840', '1080'])
+DISPATCHERS.append(
+    (Dispatch(t=CC, ch=0, c= 3), partial(zoom_placement)),
+)
+
 TITLE = 'Title card'
 GALLERY = 'Gallery'
 LSCREEN = 'Desktop (local)+camera'
 RSCREEN = 'Desktop (remote)+camera'
-OBS_MICS = ['A_Desktop Audio', 'Yeti']
 PIP = '_Zoom people overlay'
+OBS_MICS = ['A_Desktop Audio', 'Mic']
+OBS_DESKTOP_AUDIO = 'A_Desktop_Capture'
+OBS_MIC_AUDIO = 'Mic'
 
-OBS = obsws("k8.zgib.net", 4445, "coderefinery2021may")
+
+OBS = obsws("k8.zgib.net", 4445, "shiCuGoisha4ieKoh5pe")
 
 
 DISPATCHERS +=[
     # OBS
+    # Standard scene/source names:
+    #   - Title
+    #     - Clock (text that contains ([xX?]{2}:)(\d{2})(\s+|$)    )
+    #   - Gallery
+    #   - Local
+    #     - Camera (source, capture of camera)
+    #   - Remote
+    #   - Notes
+
+    # Scene switching 
     (Dispatch(t=ON, ch=1, b= 1), partial(obs_switch, scene='Title')),
     (Dispatch(t=ON, ch=1, b= 5), partial(obs_switch, scene='Gallery')),
     (Dispatch(t=ON, ch=1, b= 2), partial(obs_switch, scene='Local')),
     (Dispatch(t=ON, ch=1, b= 6), partial(obs_switch, scene='Remote')),
     (Dispatch(t=ON, ch=1, b= 3), partial(obs_switch, scene='Notes')),
-    (Dispatch(t=ON, ch=1, b= 4), partial(obs_mute, source=['Camera'])),
-    (Dispatch(t=ON, ch=1, b= 4), partial(zoom_mute, ignore_fast=70)),
-    (Dispatch(t=ON, ch=1, b= 8), partial(obs_mute, source=['A_Desktop Audio'])),
+
+    # Mute toggle
+    (Dispatch(      ch=1, b= 4), partial(obs_mute, source=[OBS_MIC_AUDIO])),
+    #(Dispatch(     ch=1, b= 4), partial(zoom_mute, ignore_fast=70)),
+    (Dispatch(      ch=1, b= 8), partial(obs_mute, source=[OBS_DESKTOP_AUDIO])),
+
+    # Misc functions
     (Dispatch(t=ON, ch=1, b= 7), partial(obs_recording_time_copy)),
     #(Dispatch(t=ON, ch=1, b= 2), partial(obs_scene_item_visible, item=['HackMD capture'])),
+
+    # Controls
+    # clock
     (Dispatch(t=CC, ch=1, c= 5), partial(rate_limit(rate=.1)(obs_text_clock), source='Clock')),
+    # camera_exposure
     (Dispatch(t=CC, ch=1, c= 6, val=Not(0)), partial(camera_exposure)),
     (Dispatch(t=CC, ch=1, c= 6, val=0), partial(camera_exposure_auto)),
-    (Dispatch(t=CC, ch=1, c= 7), camera_gain),
-    (Dispatch(t=CC, ch=1, c= 2, val=Range(0,32)),   partial(rate_limit(rate=.1)(obs_scene_item_visible), item='_ZoomOnePersonCapture', visible=True)),
-    (Dispatch(t=CC, ch=1, c= 2, val=Range(0,32)),   partial(rate_limit(rate=.1)(obs_scene_item_visible), item='_ZoomGalleryCapture', visible=False)),
-    (Dispatch(t=CC, ch=1, c= 2, val=Range(32,96)),  partial(rate_limit(rate=.1)(obs_scene_item_visible), item='_ZoomOnePersonCapture', visible=False)),
-    (Dispatch(t=CC, ch=1, c= 2, val=Range(32,96)),  partial(rate_limit(rate=.1)(obs_scene_item_visible), item='_ZoomGalleryCapture', visible=False)),
-    (Dispatch(t=CC, ch=1, c= 2, val=Range(96,128)), partial(rate_limit(rate=.1)(obs_scene_item_visible), item='_ZoomOnePersonCapture', visible=False)),
-    (Dispatch(t=CC, ch=1, c= 2, val=Range(96,128)), partial(rate_limit(rate=.1)(obs_scene_item_visible), item='_ZoomGalleryCapture', visible=True)),
-    (Dispatch(t=CC, ch=1, c= 3), partial(obs_scale_source, scene='Local',  source='_GalleryCapture', high=1)),
-    (Dispatch(t=CC, ch=1, c= 3), partial(obs_scale_source, scene='Remote', source='_GalleryCapture', high=1)),
-    (Dispatch(t=CC, ch=1, c= 3), partial(obs_scale_source, scene='Notes', source='_GalleryCapture', high=1)),
-    #(Dispatch(t=CC, ch=1, c= 3), partial(obs_scale_source, scene='Local',  source='_Camera', high=.5)),
-    #(Dispatch(t=CC, ch=1, c= 3), partial(obs_scale_source, scene='_Zoom people overlay', source='CameraS', high=.3)),
+    #(Dispatch(t=CC, ch=1, c= 7), camera_gain),
+
+    # PIP size
+    (Dispatch(t=CC, ch=1, c= 3), partial(obs_scale_source, scene=('Local', 'Remote', 'Notes'),  source='_Camera', high=1)),
+
+    (Dispatch(t=CC, ch=1, c= 7), partial(obs_set_crop, scene=('Local', 'Remote', 'Notes', 'Gallery'),  source='_Camera')),
     (Dispatch(t=CC, ch=1, c= 8), camera_pan),
     (Dispatch(t=CC, ch=1, c= 4), camera_tilt),
     #(Dispatch(t=CC, ch=1, c= 8), partial(obs_scale_source, scene='Remote', source='Camera2')),
