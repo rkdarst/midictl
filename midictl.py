@@ -355,6 +355,9 @@ def zoom_mute(msg, ignore_fast=None):
 def zoom_video(msg):
     return keystroke(msg, x11_name='Zoom Meeting$', stroke='alt+v')
 
+def zoom_raisehand(msg):
+    return keystroke(msg, x11_name='Zoom Meeting$', stroke='alt+y')
+
 def teams_mute(msg):
     return keystroke(msg,
                      x11_name=r'\(Meeting\) \| Microsoft Teams - Google Chrome$',
