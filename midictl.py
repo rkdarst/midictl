@@ -458,12 +458,15 @@ def obs_scale_source(msg, source, scene=None, scale=None, low=0, high=1, OBS=Non
     values, so we can directly set those.  To control the anchor point
     of the scaling, edit the transform in OBS.
     """
-    if scale is None:
-        scale = low + (high-low)*(msg.value/127)
-    ret = OBS.call(obs_requests.GetSceneItemProperties(source, scene_name=scene))
-    #print(ret)
-    #width = (msg.value/255) * ret.getSourceWidth()
-    ret = OBS.call(obs_requests.SetSceneItemTransform(source, scene_name=scene, x_scale=scale, y_scale=scale, rotation=0))#ret.getRotation()))
+    if not isinstance(scene, (list, tuple)):
+        scene = [ scene ]
+    for scene_ in scene:
+        if scale is None:
+            scale = low + (high-low)*(msg.value/127)
+        #ret = OBS.call(obs_requests.GetSceneItemProperties(source, scene_name=scene))
+        #print(ret)
+        #width = (msg.value/255) * ret.getSourceWidth()
+        ret = OBS.call(obs_requests.SetSceneItemTransform(source, scene_name=scene_, x_scale=scale, y_scale=scale, rotation=0))#ret.getRotation()))
     #print(ret)
 
 @obs
