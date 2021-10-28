@@ -470,6 +470,43 @@ def obs_scale_source(msg, source, scene=None, scale=None, low=0, high=1, OBS=Non
         #print(ret)
         #width = (msg.value/255) * ret.getSourceWidth()
         ret = OBS.call(obs_requests.SetSceneItemTransform(source, scene_name=scene_, x_scale=scale, y_scale=scale, rotation=0))#ret.getRotation()))
+        #print(ret)
+
+CROP_FACTORS = {
+    None: {'top':  0, 'bottom':  0, 'left':  0, 'right':  0, },
+    1:    {'top':  0, 'bottom':  0, 'left': 59, 'right':  59, },
+    2:    {'top': 90, 'bottom':  0, 'left': 12, 'right': 12, },  # checked
+    3:    {'top':  4, 'bottom':  0, 'left': 60, 'right': 60, },  # checked
+    5:    {'top': 50, 'bottom':  0, 'left': 11, 'right': 11, },  # checked
+    }
+@rate_limit(.25)
+@obs
+def obs_set_crop(msg, source, scene=None, OBS=None):
+    """Set cropping (special use)
+    """
+    # One person
+    if msg.value < 1:
+        crop = CROP_FACTORS[1]
+        print("  crop → 1 person")
+    # Two people
+    elif msg.value < 40:
+        crop = CROP_FACTORS[2]
+        print("  crop → 2 people")
+    # 3-4 people
+    elif msg.value < 80:
+        crop = CROP_FACTORS[3]
+        print("  crop → 3-4 people")
+    # 5-6 people
+    elif msg.value < 127:
+        crop = CROP_FACTORS[5]
+        print("  crop → 5-6 people")
+    else:
+        crop = CROP_FACTORS[None]
+        print("  crop → uncropped")
+    if isinstance(scene, str):
+        scene = [scene]
+    for scene_ in scene:
+        ret = OBS.call(obs_requests.SetSceneItemProperties(source, scene_name=scene, crop=crop))
     #print(ret)
 
 @obs
