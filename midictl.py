@@ -409,7 +409,10 @@ def obs_mute(msg, source, mute=None, OBS=None):
         # Multiple devices.  Get the mute status of the first one, invert it,
         # and set all to that status.
         if mute is None:
-            mute = not OBS.call(obs_requests.GetMute(source[0])).getMuted()
+            try:
+                mute = not OBS.call(obs_requests.GetMute(source[0])).getMuted()
+            except KeyError:
+                print("KeyError, perhaps unknown source: %s"%source[0])
         for src in source:
             OBS.call(obs_requests.SetMute(src, mute=mute))
 
