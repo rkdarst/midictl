@@ -122,12 +122,11 @@ GALLERY = 'Gallery'
 LSCREEN = 'Desktop (local)+camera'
 RSCREEN = 'Desktop (remote)+camera'
 PIP = '_Zoom people overlay'
-OBS_MICS = ['A_Desktop Audio', 'Mic']
 OBS_DESKTOP_AUDIO = 'A_Desktop_Capture'
 OBS_MIC_AUDIO = 'Mic'
 
 
-OBS = obsws("k8.zgib.net", 4445, "shiCuGoisha4ieKoh5pe")
+#OBS = obsws("k8.zgib.net", 4445, "the-password")
 
 
 DISPATCHERS +=[

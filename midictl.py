@@ -367,7 +367,7 @@ def teams_mute(msg):
 # https://github.com/Elektordi/obs-websocket-py
 from obswebsocket import obsws, requests as obs_requests
 import obswebsocket.exceptions
-OBS = obsws("localhost", 4444, "password")
+OBS = obsws("localhost", 4445, "password")
 
 def obs(f):
     """Decorator to create OBS websocket connection per-call.
