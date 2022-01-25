@@ -117,13 +117,17 @@ DISPATCHERS.append(
     (Dispatch(t=CC, ch=0, c= 3), partial(zoom_placement)),
 )
 
-TITLE = 'Title card'
+# Five main scenes
+TITLE = 'Title'
 GALLERY = 'Gallery'
-LSCREEN = 'Desktop (local)+camera'
-RSCREEN = 'Desktop (remote)+camera'
-PIP = '_Zoom people overlay'
-OBS_DESKTOP_AUDIO = 'A_Desktop_Capture'
-OBS_MIC_AUDIO = 'Mic'
+LSCREEN = 'Local'
+RSCREEN = 'Remote'
+NOTES = 'Notes'
+# The "picture in picture" camera insert into the other scenes
+PIP = '_Camera'
+# Names of the audio devices
+OBS_AUDIO_DESKTOP = 'A_Desktop_Capture'
+OBS_AUDIO_MIC = 'Mic'
 
 
 #OBS = obsws("k8.zgib.net", 4445, "the-password")
@@ -140,17 +144,17 @@ DISPATCHERS +=[
     #   - Remote
     #   - Notes
 
-    # Scene switching 
-    (Dispatch(t=ON, ch=1, b= 1), partial(obs_switch, scene='Title')),
-    (Dispatch(t=ON, ch=1, b= 5), partial(obs_switch, scene='Gallery')),
-    (Dispatch(t=ON, ch=1, b= 2), partial(obs_switch, scene='Local')),
-    (Dispatch(t=ON, ch=1, b= 6), partial(obs_switch, scene='Remote')),
-    (Dispatch(t=ON, ch=1, b= 3), partial(obs_switch, scene='Notes')),
+    # Scene switching
+    (Dispatch(t=ON, ch=1, b= 1), partial(obs_switch, scene=TITLE)),
+    (Dispatch(t=ON, ch=1, b= 5), partial(obs_switch, scene=GALLERY)),
+    (Dispatch(t=ON, ch=1, b= 2), partial(obs_switch, scene=LSCREEN)),
+    (Dispatch(t=ON, ch=1, b= 6), partial(obs_switch, scene=RSCREEN)),
+    (Dispatch(t=ON, ch=1, b= 3), partial(obs_switch, scene=NOTES)),
 
     # Mute toggle
-    (Dispatch(      ch=1, b= 4), partial(obs_mute, source=[OBS_MIC_AUDIO])),
+    (Dispatch(      ch=1, b= 4), partial(obs_mute, source=[OBS_AUDIO_MIC])),
     #(Dispatch(     ch=1, b= 4), partial(zoom_mute, ignore_fast=70)),
-    (Dispatch(      ch=1, b= 8), partial(obs_mute, source=[OBS_DESKTOP_AUDIO])),
+    (Dispatch(      ch=1, b= 8), partial(obs_mute, source=[OBS_AUDIO_DESKTOP])),
 
     # Misc functions
     (Dispatch(t=ON, ch=1, b= 7), partial(obs_recording_time_copy)),
@@ -165,9 +169,9 @@ DISPATCHERS +=[
     #(Dispatch(t=CC, ch=1, c= 7), camera_gain),
 
     # PIP size
-    (Dispatch(t=CC, ch=1, c= 3), partial(obs_scale_source, scene=('Local', 'Remote', 'Notes'),  source='_Camera', high=1)),
+    (Dispatch(t=CC, ch=1, c= 3), partial(obs_scale_source, scene=(LSCREEN, RSCREEN, NOTES),  source=PIP, high=1)),
 
-    (Dispatch(t=CC, ch=1, c= 7), partial(obs_set_crop, scene=('Local', 'Remote', 'Notes', 'Gallery'),  source='_Camera')),
+    (Dispatch(t=CC, ch=1, c= 7), partial(obs_set_crop, scene=(LSCREEN, RSCREEN, NOTES, GALLERY),  source=PIP)),
     (Dispatch(t=CC, ch=1, c= 8), camera_pan),
     (Dispatch(t=CC, ch=1, c= 4), camera_tilt),
     #(Dispatch(t=CC, ch=1, c= 8), partial(obs_scale_source, scene='Remote', source='Camera2')),
