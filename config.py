@@ -2,14 +2,21 @@
 mic = Selector(t='source', name='input.*USB_Advanced')
 camera = Selector(t='source', name='input.*C922')
 headset_mic = Selector(t='source', name='input.*HyperX')
-mic_all = mic._replace(it='*')
-camera_all = camera._replace(it='*')
-headset_mic_all = headset_mic._replace(it='*')
+mic_items = mic._replace(it='*')
+camera_items = camera._replace(it='*')
+headset_mic_items = headset_mic._replace(it='*')
 # Outputs
-hdmi = Selector(t='sink', name='hdmi')
-hdmi_all = Selector(t='sink', name='hdmi', it='*')
-headphones = Selector(t='sink', name='HyperX')
-headphones_all = Selector(t='sink', name='HyperX', it='*')
+hdmi     = Selector(t='sink',   name='hdmi', name_not='monitor')
+hdmi_items = Selector(t='sink', name='hdmi', name_not='monitor', it='*')
+headphones       = Selector(t='sink', name='HyperX', name_not='monitor')
+headphones_items = Selector(t='sink', name='HyperX', name_not='monitor', it='*')
+# Monitors of these:
+hdmi_mon       = Selector(t='source',   name='hdmi.*monitor')
+hdmi_mon_items = Selector(t='source', name='hdmi.*monitor', it='*')
+headphones_mon       = Selector(t='source', name='HyperX.*monitor')
+headphones_mon_items = Selector(t='source', name='HyperX.*monitor', it='*')
+
+
 
 # Since buttons can have different MIDI note events on different channels, this
 # serves as a map between physical button number and note event, per-channel.
@@ -26,12 +33,16 @@ BUTTONMAP = {
 # Program dispatches here.
 DISPATCHERS = [
     # Moving audio between devices
-    (Dispatch(t=CC, c=105), partial(pulse_move, sel=Selector(t='sink', it='*'), move_to=hdmi)),
+    (Dispatch(t=CC, c=105), partial(pulse_move, sel=Selector(t='sink',                   it='*'),     move_to=hdmi)),
+    (Dispatch(t=CC, c=105), partial(pulse_move, sel=Selector(t='source', name='monitor', it='OBS'),   move_to=hdmi_mon)),
     (Dispatch(t=CC, c=105), partial(call, cmd="pactl set-card-profile alsa_card.pci-0000_06_00.1 output:hdmi-stereo-extra3")),
-    (Dispatch(t=CC, c=106), partial(pulse_move, sel=Selector(t='sink', it='*'), move_to=headphones)),
-    (Dispatch(t=CC, c=101), partial(pulse_move, sel=Selector(t='source', it='*'), move_to=camera)),
-    (Dispatch(t=CC, c=102), partial(pulse_move, sel=Selector(t='source', it='*'), move_to=headset_mic)),
-    (Dispatch(t=CC, c=103), partial(pulse_move, sel=Selector(t='source', it='*'), move_to=mic)),
+    (Dispatch(t=CC, c=106), partial(pulse_move, sel=Selector(t='sink',                   it='*'),     move_to=headphones)),
+    (Dispatch(t=CC, c=106), partial(pulse_move, sel=Selector(t='source', name='monitor', it='OBS'),   move_to=headphones_mon)),
+
+
+    (Dispatch(t=CC, c=101), partial(pulse_move, sel=Selector(t='source', it='*', name_not='monitor'), move_to=camera)),
+    (Dispatch(t=CC, c=102), partial(pulse_move, sel=Selector(t='source', it='*', name_not='monitor'), move_to=headset_mic)),
+    (Dispatch(t=CC, c=103), partial(pulse_move, sel=Selector(t='source', it='*', name_not='monitor'), move_to=mic)),
 
     # Microphones
     # toggle:
