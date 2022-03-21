@@ -35,17 +35,17 @@ DISPATCHERS = [
 
     # Microphones
     # toggle:
-    #(Dispatch(t=ON, ch=0, n=43), partial(mute, sel=mic_all)),
-    #(Dispatch(t=ON, ch=0, b=4), partial(mute, sel=mic_all, state=False)),
-    #(Dispatch(t=OFF,ch=0, b=4), partial(mute, sel=mic_all, state=True)),
+    #(Dispatch(t=ON, ch=0, n=43), partial(mute, sel=mic_items)),
+    #(Dispatch(t=ON, ch=0, b=4), partial(mute, sel=mic_items, state=False)),
+    #(Dispatch(t=OFF,ch=0, b=4), partial(mute, sel=mic_items, state=True)),
     # PTT:
-    #(Dispatch(t=ON, ch=0, b=3), partial(mute, sel=mic_all, state=False)),
-    #(Dispatch(t=OFF,ch=0, b=3), partial(mute, sel=mic_all, state=True)),
+    #(Dispatch(t=ON, ch=0, b=3), partial(mute, sel=mic_items, state=False)),
+    #(Dispatch(t=OFF,ch=0, b=3), partial(mute, sel=mic_items, state=True)),
     # volume:
-    (Dispatch(t=CC,ch=Not(2), c= 5), partial(volume, sel=mic_all)),
+    (Dispatch(t=CC,ch=Not(2), c= 5), partial(volume, sel=mic_items)),
 
     # Zoom microphone mute toggle
-    (Dispatch(t=ON, ch=In(0,2), b=4), partial(zoom_mute, ignore_fast=70)),
+    (Dispatch(t=ON, ch=In(0,2), b=4), partial(zoom_mute, ignore_fast=100)),
     (Dispatch(t=ON, ch=0, b=4), partial(teams_mute)),
     (Dispatch(t=OFF,ch=0, b=4), partial(zoom_mute)),
     (Dispatch(t=OFF,ch=0, b=4), partial(teams_mute)),
@@ -61,8 +61,8 @@ DISPATCHERS = [
     (Dispatch(t=ON, ch=0, b= 7), partial(mute, sel=hdmi)),
     (Dispatch(t=CC,       c= 1), partial(volume, sel=hdmi, low=0, high=1)),
     (Dispatch(t=CC,       c= 1), partial(volume, sel=headphones, low=0, high=1)),
-    (Dispatch(t=CC, ch=0, c= 2), partial(volume, sel=hdmi_all._replace(last=True), low=0, high=1)),
-    #(Dispatch(t=CC, ch=0, c= 3), partial(volume, sel=hdmi_all._replace(last=False), low=0, high=1)),
+    (Dispatch(t=CC, ch=0, c= 2), partial(volume, sel=hdmi_items._replace(last=True), low=0, high=1)),
+    #(Dispatch(t=CC, ch=0, c= 3), partial(volume, sel=hdmi_items._replace(last=False), low=0, high=1)),
     #(Dispatch(t=CC,       c= 8), partial(volume, sel=Selector(t='sink', it='Chrome'), low=0, high=.7)),
     #(Dispatch(t=CC,       c= 4), partial(volume, sel=Selector(t='sink', it='ZOOM'), low=0, high=.7)),
 

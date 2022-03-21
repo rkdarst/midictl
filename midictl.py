@@ -15,7 +15,9 @@ import mido
 import pulsectl
 
 P = pulsectl.Pulse()
-
+# Check available devices with:
+# P.source_list() / P.sink_list()
+# P.source_output_list() / P.sink_input_list()
 
 
 def listen(argv):
@@ -177,8 +179,8 @@ def find_pulse(sel):
     # First get a basic iterater, then filter the iterator progressively using
     # three more functions.
     it = find_pulse_basic(sel)
-    it = pulse_filter_name(sel, it)
-    it = pulse_filter_it(sel, it)
+    it = pulse_filter_card_name(sel, it)
+    it = pulse_filter_item_name(sel, it)
     it = pulse_filter_last(sel, it)
     return it
 
@@ -208,7 +210,7 @@ def find_pulse_basic(sel):
         for src in card_list():
             yield src
 
-def pulse_filter_name(sel, it):
+def pulse_filter_card_name(sel, it):
     """Filter PulseAudio based on the card name
     """
     #print(sel.name)
@@ -223,7 +225,7 @@ def pulse_filter_name(sel, it):
         if re.search(sel.name, card.name):
             yield item
 
-def pulse_filter_it(sel, it):
+def pulse_filter_item_name(sel, it):
     """Filter PulseAudio based on source/sink item name
     """
     if sel.it is None or sel.it == '*':
