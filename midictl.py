@@ -214,24 +214,24 @@ def pulse_filter_card_name(sel, it):
     """Filter PulseAudio based on the card name
     """
     #print(sel.name)
-    if not sel.name or sel.name == '*':
-        yield from it
     for item in it:
         if hasattr(item, 'card_object'):
             card = item.card_object
         else:
             card = item
         #print(card, card.name)
-        if re.search(sel.name, card.name):
+        if sel.name_not and re.search(sel.name_not, card.name):
+            continue
+        if not sel.name or sel.name == '*' or re.search(sel.name, card.name):
             yield item
 
 def pulse_filter_item_name(sel, it):
     """Filter PulseAudio based on source/sink item name
     """
-    if sel.it is None or sel.it == '*':
-        yield from it
     for item in it:
-        if re.search(sel.it, item.proplist.get('application.name', '')):
+        if sel.it_not and re.search(sel.it_not, item.proplist.get('application.name', '')):
+            continue
+        if sel.it is None or sel.it == '*' or re.search(sel.it, item.proplist.get('application.name', '')):
             yield item
 
 def pulse_filter_last(sel, it):
@@ -575,8 +575,8 @@ Dispatch = namedtuple('Dispatch',
 # name = 'match the name.  Non-glob pattern match
 # i = if True, find items instead of sources
 Selector = namedtuple('Selector',
-                      ['t', 'name', 'it', 'desc', 'last'],
-                      defaults=[None, None, None, None, None])
+                      ['t', 'name', 'name_not', 'it', 'it_not', 'desc', 'desc_not', 'last'],
+                      defaults=[None, None, None, None, None, None, None, None])
 class Not:
     """Equality compariason returns true if values are not equal"""
     def __init__(self, x):
