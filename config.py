@@ -98,18 +98,21 @@ DISPATCHERS = [
     #(Dispatch(t=CC, ch=2, c= 4), camera_gain),
     ]
 
-@rate_limit
+@rate_limit(0.25)
 def zoom_placement(msg, RLID='zoom_placement'):
     from subprocess import call
     if msg.value < 1:
-        call(['xdotool', 'search', '--onlyvisible', '--name', '^Zoom Meeting$', 'windowmove', '4', '867'   , 'windowsize', '1190', '802', ])
+        call(['xdotool', 'search', '--onlyvisible', '--name', 'Zoom Meeting$', 'windowmove', '4', '1025'   , 'windowsize', '1190', '802', ])
         call(['xdotool', 'search', '--onlyvisible', '--name', '^Zoom$',         'windowmove', '4536', '856', 'windowsize', '500', '414',  ])
     elif msg.value < 10:
-        call(['xdotool', 'search', '--onlyvisible', '--name', '^Zoom Meeting$', 'windowmove', '1575', '867', 'windowsize', '1190', '802', ])
-        #call(['xdotool', 'search', '--onlyvisible', '--name', '^Zoom$',        'windowmove', '4536', '856', 'windowsize', '500', '414',  ])
-    elif msg.value < 20:
-        call(['xdotool', 'search', '--onlyvisible', '--name', '^Zoom Meeting$', 'windowmove', '4', '867'   , 'windowsize', '1190', '802', ])
-        call(['xdotool', 'search', '--onlyvisible', '--name', '^Zoom$',         'windowmove', '4536', '856', 'windowsize', '100%', '100%',  ])
+        call(['xdotool', 'search', '--onlyvisible', '--name', 'Zoom Meeting$', 'windowmove', '1575', '867', 'windowsize', '1190', '802', ])
+        call(['xdotool', 'search', '--onlyvisible', '--name', '^Zoom$',         'windowmove', '4536', '856', 'windowsize', '500', '414',  ])
+    elif msg.value < 35:
+        call(['xdotool', 'search', '--onlyvisible', '--name', 'Zoom Meeting$', 'windowmove', '4', '1025'   , 'windowsize', '1190', '802', ])
+        call(['xdotool', 'search', '--onlyvisible', '--name', '^Zoom$',         'windowmove', '3120', '840', 'windowsize', '1920', '1080',  ])
+    elif msg.value < 64:
+        call(['xdotool', 'search', '--onlyvisible', '--name', 'Zoom Meeting$', 'windowmove', '1575', '867', 'windowsize', '1190', '802', ])
+        call(['xdotool', 'search', '--onlyvisible', '--name', '^Zoom$',         'windowmove', '3120', '840', 'windowsize', '1920', '1080',  ])
 
 
         #call(['xdotool', 'search', '--onlyvisible', '--name', '^Zoom$', 'windowsize', '840', '1080'])
