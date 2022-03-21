@@ -120,20 +120,21 @@ DISPATCHERS.append(
     (Dispatch(t=CC, ch=0, c= 3), partial(zoom_placement)),
 )
 
+
+
 # Five main scenes
+OBS = obsws("k8.zgib.net", 4445, "Vae9kaiM*ai2eothie9u")
 TITLE = 'Title'
 GALLERY = 'Gallery'
-LSCREEN = 'Local'
-RSCREEN = 'Remote'
-NOTES = 'Notes'
+LSCREEN = 'Broadcaster-Screen'
+RSCREEN = 'Screenshare'
+NOTES = 'HackMD'
 # The "picture in picture" camera insert into the other scenes
-PIP = '_Camera'
+PIP = '_GalleryCapture[hidden]'
 # Names of the audio devices
-OBS_AUDIO_DESKTOP = 'A_Desktop_Capture'
-OBS_AUDIO_MIC = 'Mic'
+OBS_AUDIO_DESKTOP = 'Instructors'
+OBS_AUDIO_MIC = 'BroadcasterMic'
 
-
-#OBS = obsws("k8.zgib.net", 4445, "the-password")
 
 
 DISPATCHERS +=[
@@ -172,9 +173,9 @@ DISPATCHERS +=[
     #(Dispatch(t=CC, ch=1, c= 7), camera_gain),
 
     # PIP size
-    (Dispatch(t=CC, ch=1, c= 3), partial(obs_scale_source, scene=(LSCREEN, RSCREEN, NOTES),  source=PIP, high=1)),
+    (Dispatch(t=CC, ch=1, c= 7), partial(obs_scale_source, scene=(LSCREEN, RSCREEN, NOTES),  source=PIP, high=1)),
 
-    (Dispatch(t=CC, ch=1, c= 7), partial(obs_set_crop, scene=(LSCREEN, RSCREEN, NOTES, GALLERY),  source=PIP)),
+    (Dispatch(t=CC, ch=1, c= 3), partial(obs_set_crop, scene=(LSCREEN, RSCREEN, NOTES, GALLERY),  source=PIP)),
     (Dispatch(t=CC, ch=1, c= 8), camera_pan),
     (Dispatch(t=CC, ch=1, c= 4), camera_tilt),
     #(Dispatch(t=CC, ch=1, c= 8), partial(obs_scale_source, scene='Remote', source='Camera2')),
