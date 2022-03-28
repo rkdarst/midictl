@@ -172,7 +172,8 @@ DISPATCHERS +=[
     (Dispatch(      ch=1, b= 8), partial(obs_mute, source=[OBS_AUDIO_DESKTOP])),
 
     # Misc functions
-    (Dispatch(t=ON, ch=1, b= 7), partial(obs_recording_time_copy)),
+    #(Dispatch(t=ON, ch=1, b= 7), partial(obs_recording_time_copy)),
+    (Dispatch(t=OFF,ch=1, b=7), partial(zoom_video)),
     #(Dispatch(t=ON, ch=1, b= 2), partial(obs_scene_item_visible, item=['HackMD capture'])),
 
     # Controls
