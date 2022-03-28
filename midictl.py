@@ -285,10 +285,14 @@ def pulse_move(msg, sel, move_to, counter=None):
                 P.source_output_move(source.index, speaker.index)
         except:
             traceback.print_exc()
-    if move_to.t == 'sink':
-        P.sink_default_set(speaker)
-    else:
-        P.source_default_set(speaker)
+    # Set the default device to the target device.  This could (should) be a
+    # different function than the pulse_move function, but for now this is a
+    # useful workaround.
+    if sel.name is None or 'monitor' not in sel.name:
+        if move_to.t == 'sink':
+            P.sink_default_set(speaker)
+        else:
+            P.source_default_set(speaker)
 
 #
 # v4l2 cameras control
