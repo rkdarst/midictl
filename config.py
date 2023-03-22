@@ -55,18 +55,23 @@ DISPATCHERS = [
     # volume:
     (Dispatch(t=CC,ch=Not(2), c= 5), partial(volume, sel=mic_items)),
 
-    # Zoom microphone mute toggle
+    # Microphone mute toggle
     (Dispatch(t=ON, ch=In(0,2), b=4), partial(zoom_mute, ignore_fast=100)),
     (Dispatch(t=ON, ch=0, b=4), partial(teams_mute)),
     (Dispatch(t=OFF,ch=0, b=4), partial(zoom_mute)),
     (Dispatch(t=OFF,ch=0, b=4), partial(teams_mute)),
+    (Dispatch(t=CC, c=104),     partial(zoom_mute)),
     # PTT
     (Dispatch(t=ON, ch=0, b=3), partial(zoom_mute)),
     (Dispatch(t=OFF,ch=0, b=3), partial(zoom_mute)),
-    # Zoom video toggle
+    # Video toggle
     (Dispatch(t=OFF,ch=0, b=8), partial(zoom_video)),
-    # Zoom raise/lower hand
+    (Dispatch(t=OFF,ch=0, b=8), partial(teams_video)),
+    (Dispatch(t=CC, c=108),     partial(zoom_video)),
+    (Dispatch(t=CC, c=108),     partial(teams_video)),
+    # Raise/lower hand
     (Dispatch(t=OFF,ch=0, b=2), partial(zoom_raisehand)),
+    (Dispatch(t=OFF,ch=0, b=2), partial(teams_raisehand)),
 
     # Volumes, speakers
     (Dispatch(t=ON, ch=0, b= 7), partial(mute, sel=hdmi)),

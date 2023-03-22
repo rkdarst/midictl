@@ -364,10 +364,13 @@ def zoom_video(msg):
 def zoom_raisehand(msg):
     return keystroke(msg, x11_name='Zoom Meeting$', stroke='alt+y')
 
+teams_x11name = r'\(Meeting\) \| Microsoft Teams - Google Chrome$'
 def teams_mute(msg):
-    return keystroke(msg,
-                     x11_name=r'\(Meeting\) \| Microsoft Teams - Google Chrome$',
-                     stroke='ctrl+shift+m')
+    return keystroke(msg, x11_name=teams_x11name, stroke='ctrl+shift+m')
+def teams_video(msg):
+    return keystroke(msg, x11_name=teams_x11name, stroke='ctrl+shift+o')
+def teams_raisehand(msg):
+    return keystroke(msg, x11_name=teams_x11name, stroke='ctrl+shift+k')
 
 
 # https://github.com/Elektordi/obs-websocket-py
