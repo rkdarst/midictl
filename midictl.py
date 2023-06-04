@@ -4,6 +4,7 @@ from collections import namedtuple
 import functools
 from functools import partial
 import glob
+import math
 import os
 import re
 import subprocess
@@ -166,6 +167,32 @@ def rate_limit(rate=.5):
         return invoke
     return wrapper
 
+DELAY_STATE = collections.defaultdict()
+def delay(min_delay=0, max_delay=10):
+    """Decorator to only pass events based on the delay.
+
+    It will only invoke the wrapped function if the delay betten off/on
+    events is between min_delay and max_delay.  Only works for
+    note_on→note_off delays.
+    """
+    def wrapper(f):
+        @functools.wraps(f.func if hasattr(f, 'func') else f)
+        def invoke(msg, *args, DID=None, RLID=None, **kwargs):
+            if RLID is not None:
+                ID = RLID
+            else:
+                ID = hash(tuple(kwargs.items()))
+            if msg.type == ON:
+                # Store time but don't do anything
+                DELAY_STATE[ID] = time.time()
+            elif msg.type == OFF:
+                # Computer delay time and do stuff
+                delay = time.time() - DELAY_STATE[ID]
+                if min_delay <= delay < max_delay:
+                    print("    delay =", delay)
+                    f(msg, *args, **kwargs)
+        return invoke
+    return wrapper
 
 #
 # PulseAudio-related functions
@@ -556,6 +583,28 @@ def obs_recording_time_copy(msg, OBS=None, selection='clipboard'):
 #@rate_limit(.25)
 
 
+# mpv control
+def mpv_command(msg, args=['set_property', 'speed', 2]):
+    import json
+    import pwd
+    import socket
+    mpv_socket = '/tmp/mpvsocket-'+pwd.getpwuid(os.getuid()).pw_name
+    with socket.socket(socket.AF_UNIX, socket.SOCK_STREAM) as client:
+        client.connect(mpv_socket)
+        client.send(('{ "command": %s }\n'%json.dumps(args)).encode())
+        print(client.recv(128))
+        client.close()
+
+def mpv_speed_control(msg):
+    if msg.value < 15:
+        speed = msg.value/15
+    elif msg.value > 17:
+        speed= 1 + ((msg.value-18)/10)**2
+    else:
+        speed = 1
+    print("  mpv speed %s"%speed)
+    mpv_command(None, args=['set_property', 'speed', speed])
+    mpv_command(None, args=['show-text', 'speed %s'%round(speed, 2)])
 
 
 # External processes

@@ -165,29 +165,33 @@ DISPATCHERS +=[
     #   - Notes
 
     # Scene switching
-    (Dispatch(t=ON, ch=1, b= 1), partial(obs_switch, scene=TITLE)),
+    (Dispatch(      ch=1, b= 1), delay( 0, .5)(partial(obs_switch, scene=NOTES))),
+    (Dispatch(      ch=1, b= 1), delay(.5, 10)(partial(obs_switch, scene=TITLE))),
     (Dispatch(t=ON, ch=1, b= 5), partial(obs_switch, scene=GALLERY)),
     (Dispatch(t=ON, ch=1, b= 2), partial(obs_switch, scene=LSCREEN)),
     (Dispatch(t=ON, ch=1, b= 6), partial(obs_switch, scene=RSCREEN)),
-    (Dispatch(t=ON, ch=1, b= 3), partial(obs_switch, scene=NOTES)),
+    #(Dispatch(t=ON, ch=1, b= 3), partial(obs_switch, scene=NOTES)),
 
-    # Mute toggle
+    # OBS Mute toggle
     (Dispatch(      ch=1, b= 4), partial(obs_mute, source=[OBS_AUDIO_MIC])),
-    #(Dispatch(     ch=1, b= 4), partial(zoom_mute, ignore_fast=70)),
     (Dispatch(      ch=1, b= 8), partial(obs_mute, source=[OBS_AUDIO_DESKTOP])),
+
+    # Zoom audio/video toggle
+    (Dispatch(      ch=1, b= 3), partial(zoom_mute)),
+    (Dispatch(      ch=1, b= 7), partial(zoom_video)),
 
     # Misc functions
     #(Dispatch(t=ON, ch=1, b= 7), partial(obs_recording_time_copy)),
-    (Dispatch(t=OFF,ch=1, b=7), partial(zoom_video)),
     #(Dispatch(t=ON, ch=1, b= 2), partial(obs_scene_item_visible, item=['HackMD capture'])),
+    (Dispatch(t=CC, ch=1, c= 2), mpv_speed_control),
 
     # Controls
     # clock
     (Dispatch(t=CC, ch=1, c= 5), partial(rate_limit(rate=.1)(obs_text_clock), source='Clock')),
     # camera_exposure
-    (Dispatch(t=CC, ch=1, c= 6, val=Not(0)), partial(camera_exposure)),
+    (Dispatch(t=CC, ch=1, c= 6, val=Not(0)), partial(camera_exposure, high=200)),
     (Dispatch(t=CC, ch=1, c= 6, val=0), partial(camera_exposure_auto)),
-    #(Dispatch(t=CC, ch=1, c= 7), camera_gain),
+    (Dispatch(t=CC, ch=1, c= 6), partial(camera_gain, low=64)),
 
     # PIP size
     (Dispatch(t=CC, ch=1, c= 7), partial(obs_scale_source, scene=(LSCREEN, RSCREEN, NOTES),  source=PIP, high=1)),
