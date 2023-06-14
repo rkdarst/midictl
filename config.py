@@ -144,6 +144,7 @@ TITLE = 'Title'
 GALLERY = 'Gallery'
 LSCREEN = 'Broadcaster-Screen'
 RSCREEN = 'Screenshare'
+RSCREENLANDSCAPE = 'ScreenshareLandscape'
 NOTES = 'HackMD'
 # The "picture in picture" camera insert into the other scenes
 PIP = '_GalleryCapture[hidden]'
@@ -169,7 +170,8 @@ DISPATCHERS +=[
     (Dispatch(      ch=1, b= 1), delay(.5, 10)(partial(obs_switch, scene=TITLE))),
     (Dispatch(t=ON, ch=1, b= 5), partial(obs_switch, scene=GALLERY)),
     (Dispatch(t=ON, ch=1, b= 2), partial(obs_switch, scene=LSCREEN)),
-    (Dispatch(t=ON, ch=1, b= 6), partial(obs_switch, scene=RSCREEN)),
+    (Dispatch(      ch=1, b= 6), delay( 0, .5)(partial(obs_switch, scene=RSCREEN))),
+    (Dispatch(      ch=1, b= 6), delay(.5, 10)(partial(obs_switch, scene=RSCREENLANDSCAPE))),
     #(Dispatch(t=ON, ch=1, b= 3), partial(obs_switch, scene=NOTES)),
 
     # OBS Mute toggle
@@ -194,9 +196,9 @@ DISPATCHERS +=[
     (Dispatch(t=CC, ch=1, c= 6), partial(camera_gain, low=64)),
 
     # PIP size
-    (Dispatch(t=CC, ch=1, c= 7), partial(obs_scale_source, scene=(LSCREEN, RSCREEN, NOTES),  source=PIP, high=1)),
+    (Dispatch(t=CC, ch=1, c= 7), partial(obs_scale_source, scene=(LSCREEN, RSCREEN, RSCREENLANDSCAPE, NOTES),  source=PIP, high=1)),
 
-    (Dispatch(t=CC, ch=1, c= 3), partial(obs_set_crop, scene=(LSCREEN, RSCREEN, NOTES, GALLERY),  source=PIP)),
+    (Dispatch(t=CC, ch=1, c= 3), partial(obs_set_crop, scene=(LSCREEN, RSCREEN, RSCREENLANDSCAPE, NOTES, GALLERY),  source=PIP)),
     (Dispatch(t=CC, ch=1, c= 8), camera_pan),
     (Dispatch(t=CC, ch=1, c= 4), camera_tilt),
     #(Dispatch(t=CC, ch=1, c= 8), partial(obs_scale_source, scene='Remote', source='Camera2')),
