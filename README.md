@@ -132,6 +132,10 @@ DISPATCHERS = [
 ```
 
 
+## OS packages
+* xdotool
+* v4l2-utils
+
 
 ## Status
 
