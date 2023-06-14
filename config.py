@@ -175,12 +175,12 @@ DISPATCHERS +=[
     #(Dispatch(t=ON, ch=1, b= 3), partial(obs_switch, scene=NOTES)),
 
     # OBS Mute toggle
-    (Dispatch(      ch=1, b= 4), partial(obs_mute, source=[OBS_AUDIO_MIC])),
-    (Dispatch(      ch=1, b= 8), partial(obs_mute, source=[OBS_AUDIO_DESKTOP])),
+    (Dispatch(      ch=1, b= 3), partial(obs_mute, source=[OBS_AUDIO_MIC])),
+    (Dispatch(      ch=1, b= 7), partial(obs_mute, source=[OBS_AUDIO_DESKTOP])),
 
     # Zoom audio/video toggle
-    (Dispatch(      ch=1, b= 3), partial(zoom_mute)),
-    (Dispatch(      ch=1, b= 7), partial(zoom_video)),
+    (Dispatch(      ch=1, b= 4), partial(zoom_mute)),
+    (Dispatch(      ch=1, b= 8), partial(zoom_video)),
 
     # Misc functions
     #(Dispatch(t=ON, ch=1, b= 7), partial(obs_recording_time_copy)),
