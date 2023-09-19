@@ -425,7 +425,7 @@ def obs(f):
 
 @obs
 def obs_switch(msg, scene, OBS):
-    OBS.call(obs_requests.SetCurrentScene(scene))
+    OBS.call(obs_requests.SetCurrentProgramScene(sceneName=scene))
 
 @obs
 def obs_mute(msg, source, mute=None, OBS=None):
@@ -438,33 +438,33 @@ def obs_mute(msg, source, mute=None, OBS=None):
     if not isinstance(source, (list,tuple)):
         # Single source
         if mute is None:
-            OBS.call(obs_requests.ToggleMute(source))
+            OBS.call(obs_requests.ToggleInputMute(inputName=source))
         else:
-            OBS.call(obs_requests.SetMute(source, mute=mute))
+            OBS.call(obs_requests.SetInputMute(inputName=source, inputMuted=mute))
     else:
         # Multiple devices.  Get the mute status of the first one, invert it,
         # and set all to that status.
         if mute is None:
             try:
-                mute = not OBS.call(obs_requests.GetMute(source[0])).getMuted()
+                mute = not OBS.call(obs_requests.GetInputMute(inputName=source[0])).getInputMuted()
             except KeyError:
                 print("KeyError, perhaps unknown source: %s"%source[0])
         for src in source:
-            OBS.call(obs_requests.SetMute(src, mute=mute))
+            OBS.call(obs_requests.SetInputMute(inputName=src, inputMuted=mute))
 
 
-@obs
-def obs_scene_item_visible(msg, item, visible=None, OBS=None):
-    """Toggle or set scene item visibility
-
-    This works just like `obs_mute`, but for scene item visibility.
-    """
-    if not isinstance(item, (list,tuple)):
-        item = [item]
-    if visible is None:
-        visible = not OBS.call(obs_requests.GetSceneItemProperties(item[0])).getVisible()
-    for item_ in item:
-        OBS.call(obs_requests.SetSceneItemProperties(item_, visible=visible))
+#@obs
+#def obs_scene_item_visible(msg, item, visible=None, OBS=None):
+#    """Toggle or set scene item visibility
+#
+#    This works just like `obs_mute`, but for scene item visibility.
+#    """
+#    if not isinstance(item, (list,tuple)):
+#        item = [item]
+#    if visible is None:
+#        visible = not OBS.call(obs_requests.GetSceneItemProperties(item[0])).getVisible()
+#    for item_ in item:
+#        OBS.call(obs_requests.SetSceneItemProperties(item_, visible=visible))
 
 @obs
 def obs_toggle_recording(msg, state=None, OBS=None):
@@ -482,6 +482,11 @@ def obs_toggle_recording(msg, state=None, OBS=None):
 @obs
 def obs_text_clock(msg, source, OBS=None):
     """Update the NN value of a xx:NN text message"""
+    item_id = OBS.call(obs_requests.GetSceneItemId(sceneName="Title", sourceName=source)).getSceneItemId()
+    transform = OBS.call(obs_requests.GetSceneItemTransform(sceneName="Title", sceneItemId=item_id)).getSceneItemTransform()
+    print(transform)
+
+
     ret = OBS.call(obs_requests.GetTextFreetype2Properties(source))
     text = ret.getText()
     new_time = int(msg.value/127 * 59)
@@ -508,8 +513,11 @@ def obs_scale_source(msg, source, scene=None, scale=None, low=0, high=1, OBS=Non
         #ret = OBS.call(obs_requests.GetSceneItemProperties(source, scene_name=scene))
         #print(ret)
         #width = (msg.value/255) * ret.getSourceWidth()
-        ret = OBS.call(obs_requests.SetSceneItemTransform(source, scene_name=scene_, x_scale=scale, y_scale=scale, rotation=0))#ret.getRotation()))
-        #print(ret)
+        item_id = OBS.call(obs_requests.GetSceneItemId(sceneName=scene_, sourceName=source)).getSceneItemId()
+        transform = OBS.call(obs_requests.GetSceneItemTransform(sceneName=scene_, sceneItemId=item_id)).getSceneItemTransform()
+        transform['scaleX'] = scale
+        transform['scaleY'] = scale
+        OBS.call(obs_requests.SetSceneItemTransform(sceneName=scene_, sceneItemId=item_id, sceneItemTransform=transform))
 
 CROP_FACTORS = {
     None: {'top':  0, 'bottom':  0, 'left':  0, 'right':  0, },
@@ -545,8 +553,11 @@ def obs_set_crop(msg, source, scene=None, OBS=None):
     if isinstance(scene, str):
         scene = [scene]
     for scene_ in scene:
-        ret = OBS.call(obs_requests.SetSceneItemProperties(source, scene_name=scene, crop=crop))
-    #print(ret)
+        item_id = OBS.call(obs_requests.GetSceneItemId(sceneName=scene_, sourceName=source)).getSceneItemId()
+        transform = OBS.call(obs_requests.GetSceneItemTransform(sceneName=scene_, sceneItemId=item_id)).getSceneItemTransform()
+        for (k,v) in crop.items():
+            transform['crop'+k.title()] = v
+        OBS.call(obs_requests.SetSceneItemTransform(sceneName=scene_, sceneItemId=item_id, sceneItemTransform=transform))
 
 @obs
 def obs_recording_time_copy(msg, OBS=None, selection='clipboard'):
@@ -560,10 +571,10 @@ def obs_recording_time_copy(msg, OBS=None, selection='clipboard'):
 
     selection: 'primary' or 'secondary' or 'clipboard'.
     """
-    ret = OBS.call(obs_requests.GetRecordingStatus())
+    ret = OBS.call(obs_requests.GetRecordStatus())
     if not ret.getIsRecording():
         return
-    timestamp = ret.getRecordTimecode() # string
+    timestamp = ret.outputTimecode() # string
     #print(timestamp)
     # convert to seconds
     parts = timestamp.split(':')
