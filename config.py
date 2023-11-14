@@ -35,7 +35,7 @@ DISPATCHERS = [
     # Moving audio between devices: speakers
     (Dispatch(t=CC, c=105), partial(pulse_move, sel=Selector(t='sink',                   it='*'),     move_to=hdmi)),
     (Dispatch(t=CC, c=105), partial(pulse_move, sel=Selector(t='source', name='monitor', it='OBS'),   move_to=hdmi_mon)),
-    (Dispatch(t=CC, c=105), partial(call, cmd="pactl set-card-profile alsa_card.pci-0000_06_00.1 output:hdmi-stereo-extra3")),
+    (Dispatch(t=CC, c=105), partial(call, cmd="pactl set-card-profile alsa_card.pci-0000_06_00.1 output:hdmi-stereo-extra5")),
     (Dispatch(t=CC, c=106), partial(pulse_move, sel=Selector(t='sink',                   it='*'),     move_to=headphones)),
     (Dispatch(t=CC, c=106), partial(pulse_move, sel=Selector(t='source', name='monitor', it='OBS'),   move_to=headphones_mon)),
 
