@@ -35,7 +35,8 @@ DISPATCHERS = [
     # Moving audio between devices: speakers
     (Dispatch(t=CC, c=105), partial(pulse_move, sel=Selector(t='sink',                   it='*'),     move_to=hdmi)),
     (Dispatch(t=CC, c=105), partial(pulse_move, sel=Selector(t='source', name='monitor', it='OBS'),   move_to=hdmi_mon)),
-    (Dispatch(t=CC, c=105), partial(call, cmd="pactl set-card-profile alsa_card.pci-0000_06_00.1 output:hdmi-stereo-extra5")),
+    (Dispatch(t=CC, c=105), partial(call, cmd="pactl set-card-profile alsa_card.pci-0000_06_00.1 output:hdmi-stereo-extra5")),  # 2023: R monitor
+    (Dispatch(t=CC, c=107), partial(call, cmd="pactl set-card-profile alsa_card.pci-0000_06_00.1 output:hdmi-stereo-extra4")),  # 2023: vr
     (Dispatch(t=CC, c=106), partial(pulse_move, sel=Selector(t='sink',                   it='*'),     move_to=headphones)),
     (Dispatch(t=CC, c=106), partial(pulse_move, sel=Selector(t='source', name='monitor', it='OBS'),   move_to=headphones_mon)),
 
@@ -87,12 +88,12 @@ DISPATCHERS = [
     #(Dispatch(t=ON, ch=0, b= 6), partial(pulse_move, sel=Selector(t='sink', it='*'), move_to=hdmi)),
     #(Dispatch(t=ON, ch=3, b= 1), partial(pulse_move, sel=Selector(t='sink', it='*'), move_to=hdmi)),
     #(Dispatch(t=ON, ch=3, b= 5), partial(pulse_move, sel=Selector(t='sink', it='*'), move_to=headphones)),
-    (Dispatch(t=ON, ch=0, b= 5), partial(pulse_move, sel=Selector(t='sink', it='*'), move_to=(headphones, hdmi))),
-    (Dispatch(t=ON, ch=3, b= 5), partial(pulse_move, sel=Selector(t='sink', it='*'), move_to=(headphones, hdmi))),
-    (Dispatch(t=ON, ch=0, b= 5), partial(call, cmd="pactl set-card-profile alsa_card.pci-0000_06_00.1 output:hdmi-stereo-extra3")),
+    #(Dispatch(t=ON, ch=0, b= 5), partial(pulse_move, sel=Selector(t='sink', it='*'), move_to=(headphones, hdmi))),
+    #(Dispatch(t=ON, ch=3, b= 5), partial(pulse_move, sel=Selector(t='sink', it='*'), move_to=(headphones, hdmi))),
+    #(Dispatch(t=ON, ch=0, b= 5), partial(call, cmd="pactl set-card-profile alsa_card.pci-0000_06_00.1 output:hdmi-stereo-extra3")),
 
     # Move microphone between sources
-    (Dispatch(t=ON, ch=0, b= 1), partial(pulse_move, sel=Selector(t='source', it='*'), move_to=(mic, camera, headset_mic))),
+    #(Dispatch(t=ON, ch=0, b= 1), partial(pulse_move, sel=Selector(t='source', it='*'), move_to=(mic, camera, headset_mic))),
 
     # Camera exposure
     #(Dispatch(t=ON, ch=0, b= 1), partial(camera_exposure_auto)),
@@ -144,8 +145,9 @@ TITLE = 'Title'
 GALLERY = 'Gallery'
 LSCREEN = 'Broadcaster-Screen'
 RSCREEN = 'Screenshare'
+NOTES = 'Notes'
 RSCREENLANDSCAPE = 'ScreenshareLandscape'
-NOTES = 'HackMD'
+SCENES_WITH_PIP = (RSCREEN, 'ScreenshareCrop', RSCREENLANDSCAPE, LSCREEN, NOTES)
 # The "picture in picture" camera insert into the other scenes
 PIP = '_GalleryCapture[hidden]'
 # Names of the audio devices
@@ -189,16 +191,16 @@ DISPATCHERS +=[
 
     # Controls
     # clock
-    (Dispatch(t=CC, ch=1, c= 5), partial(rate_limit(rate=.1)(obs_text_clock), source='Clock')),
+    #(Dispatch(t=CC, ch=1, c= 5), partial(rate_limit(rate=.1)(obs_text_clock), source='Clock')),
     # camera_exposure
     (Dispatch(t=CC, ch=1, c= 6, val=Not(0)), partial(camera_exposure, high=200)),
     (Dispatch(t=CC, ch=1, c= 6, val=0), partial(camera_exposure_auto)),
     (Dispatch(t=CC, ch=1, c= 6), partial(camera_gain, low=64)),
 
     # PIP size
-    (Dispatch(t=CC, ch=1, c= 7), partial(obs_scale_source, scene=(LSCREEN, RSCREEN, RSCREENLANDSCAPE, NOTES),  source=PIP, high=1)),
+    (Dispatch(t=CC, ch=1, c= 7), partial(obs_scale_source, scene=SCENES_WITH_PIP,  source=PIP, high=1)),
 
-    (Dispatch(t=CC, ch=1, c= 3), partial(obs_set_crop, scene=(LSCREEN, RSCREEN, RSCREENLANDSCAPE, NOTES, GALLERY),  source=PIP)),
+    (Dispatch(t=CC, ch=1, c= 3), partial(obs_set_crop, scene=SCENES_WITH_PIP + (GALLERY,),  source=PIP)),
     (Dispatch(t=CC, ch=1, c= 8), camera_pan),
     (Dispatch(t=CC, ch=1, c= 4), camera_tilt),
     #(Dispatch(t=CC, ch=1, c= 8), partial(obs_scale_source, scene='Remote', source='Camera2')),

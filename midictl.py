@@ -15,6 +15,8 @@ import traceback
 import mido
 import pulsectl
 
+DISPATCHERS = [ ]
+
 P = pulsectl.Pulse()
 # Check available devices with:
 # P.source_list() / P.sink_list()
@@ -351,6 +353,7 @@ camera_tilt = partial(v4l2_set, control='tilt_absolute=%(value)s', low=-36000, h
 
 
 
+ESCAPE_KEY = [ 'key', 'alt+apostrophe' ]
 def keystroke(msg, x11_name, stroke):
     """Send a keystroke to an application window
 
@@ -367,7 +370,8 @@ def keystroke(msg, x11_name, stroke):
     # WARNING: this prints an error if the window is not visible on the screen.
     cmd = ['xdotool', 'search', '--name', x11_name,
            'windowfocus',
-           'key', 'alt+apostrophe', stroke,
+           *ESCAPE_KEY,
+           stroke,
            'windowfocus', subprocess.getoutput('xdotool getwindowfocus')
            ]
     subprocess.call(cmd)
