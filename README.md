@@ -22,17 +22,31 @@ The main entry point is `listen`, which parses arguments, opens the
 device, listens to the MIDI device, and dispatches each event to the
 `handle` function.
 
-The `handle` function, for each
+The `handle` function is called for each MIDI event that comes in.  For each
 event, it searches the `DISPATCHERS` list, which is pairs of
-(dispatch_selector, callback_function).  Any row which matches the
+`(dispatch_selector, callback_function)`.  Any row which matches the
 dispatch_selector is called as `callback_function(msg)`, where `msg`
 is the MIDI event from the mido library.  Functions can do whatever.
 
 The namedtuple class `Dispatch` is the dispatch selector, which has
-properties to select on midi events, for example "type" is `t`,
-"channel" is `ch`, "note" is `n`, and so on.  All given selectors must
+properties to select on midi events.  A MIDI event is sent to each
+callbacks which has every given property matching the event.  Dispatch
+properties include:
+* `t`: type (string: `note_on`, `note_off`, `control_change`,
+  `program_change`; has shortcut symbols `ON`, `OFF`, `CC`, `PC`.)
+* `ch`: channel
+* `n`: note
+* `c`: control
+* `p`:
+* `b`:
+* `val`: value
+* `vel`: velocity
+All given selectors must
 match (AND).  To implement an OR,
 one usually adds multiple similar selectors to `DISPATCHERS`.
+
+It will always print event before it dispatches them, so you can start
+with an empty config file and slowly add things.
 
 For an example configuration, see `config.py`
 
@@ -59,6 +73,17 @@ The following events can be triggered
 * PulseAudio mutes and volume changes. `Selector` is namedtuple which
   can select which pulse devices to operate on,
 
+
+## Utility functions
+
+These functions can be used to modify other functions:
+
+* `rate_limit`: A continuous event (such as turning a knob) won't be
+  called more than every `rate` seconds.  It makes sure to call with
+  the final value.
+* `delay`: can be used to detect long presses and similar and
+  distinguish them from short presses.  Example: push button quickly
+  to switch to scene A, press button long to switch to scene B.
 
 
 ## Configuration examples
