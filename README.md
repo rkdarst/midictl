@@ -37,8 +37,10 @@ properties include:
 * `ch`: channel
 * `n`: note
 * `c`: control
-* `p`:
-* `b`:
+* `p`: program
+* `b`: look up note through `BUTTONMAP` to be simpler than remembering
+  all nodes.
+  If : `note == BUTTONMAP[msg.channel][dispatcher.b]`
 * `val`: value
 * `vel`: velocity
 All given selectors must
