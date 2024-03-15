@@ -140,7 +140,7 @@ DISPATCHERS.append(
 
 
 # Five main scenes
-OBS = obsws("k8.zgib.net", 4445, "Vae9kaiM*ai2eothie9u")
+#OBS = obsws("k8.zgib.net", 4444, "password")
 TITLE = 'Title'
 GALLERY = 'Gallery'
 LSCREEN = 'Broadcaster-Screen'
