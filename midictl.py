@@ -335,10 +335,10 @@ def v4l2_set(msg, control, low=0, high=255, value=None, zero=None):
         value = low + (high-low)*msg.value/127
     cmd = ['v4l2-ctl', '--set-ctrl', control%{'value':value}]
     subprocess.call(cmd)
-def camera_exposure(msg, low=0, high=1000, control='exposure_auto=1,exposure_absolute=%(value)s'):
+def camera_exposure(msg, low=0, high=1000, control='auto_exposure=1,exposure_time_absolute=%(value)s'):
     """Use v4l2 to adjust exposure"""
     return v4l2_set(msg, low=low, high=high, control=control)
-def camera_exposure_auto(msg, control='exposure_auto=3'):
+def camera_exposure_auto(msg, control='auto_exposure=3'):
     """Use v4l2 to set exposure to auto-mode"""
     return v4l2_set(msg, control=control)
 camera_brightness = partial(v4l2_set, control='brightness=%(value)s', zero=128)
@@ -346,8 +346,8 @@ camera_contrast = partial(v4l2_set, control='contrast=%(value)s', zero=128)
 camera_saturation = partial(v4l2_set, control='saturation=%(value)s', zero=128)
 camera_sharpness = partial(v4l2_set, control='sharpness=%(value)s', zero=128)
 camera_gain = partial(v4l2_set, control='gain=%(value)s', zero=64)
-camera_wb_temp = partial(v4l2_set, control='white_balance_temperature_auto=0,white_balance_temperature=%(value)s', low=2000, high=6500)
-camera_wb_auto = partial(v4l2_set, control='white_balance_temperature_auto=1')
+camera_wb_temp = partial(v4l2_set, control='white_balance_automatic=0,white_balance_temperature=%(value)s', low=2000, high=6500)
+camera_wb_auto = partial(v4l2_set, control='white_balance_automatic=1')
 camera_pan = partial(v4l2_set, control='pan_absolute=%(value)s', low=-36000, high=36000, zero=0)
 camera_tilt = partial(v4l2_set, control='tilt_absolute=%(value)s', low=-36000, high=36000, zero=0)
 

@@ -97,22 +97,26 @@ DISPATCHERS = [
 
     # Camera exposure
     #(Dispatch(t=ON, ch=0, b= 1), partial(camera_exposure_auto)),
-    (Dispatch(t=CC, ch=0, c= 6, val=Not(0)), partial(camera_exposure)),
-    (Dispatch(t=CC, ch=0, c= 6, val=0), partial(camera_exposure_auto)),
-    (Dispatch(t=CC, ch=0, c= 7), camera_gain),
+    (Dispatch(t=CC, ch=0, c= 7, val=Not(0)), partial(camera_exposure)),
+    (Dispatch(t=CC, ch=0, c= 7, val=0), partial(camera_exposure_auto)),
+    (Dispatch(t=CC, ch=0, c= 3), camera_gain),
     (Dispatch(t=CC, ch=0, c= 8), camera_pan),
     (Dispatch(t=CC, ch=0, c= 4), camera_tilt),
 
     # Camera exposure
-    (Dispatch(t=CC, ch=2, c= 5, val=Not(0)), camera_wb_temp),
-    (Dispatch(t=CC, ch=2, c= 5, val=0), camera_wb_auto),
+    # row1
+    (Dispatch(t=CC, ch=2, c= 5), camera_sharpness),
+    # row2
     (Dispatch(t=CC, ch=2, c= 6), camera_brightness),
     (Dispatch(t=CC, ch=2, c= 2), camera_contrast),
-    (Dispatch(t=CC, ch=2, c= 7), camera_saturation),
-    (Dispatch(t=CC, ch=2, c= 3), camera_sharpness),
-    #(Dispatch(t=CC, ch=2, c= 8, val=Not(0)), partial(camera_exposure)),
-    #(Dispatch(t=CC, ch=2, c= 8, val=0), partial(camera_exposure_auto)),
-    #(Dispatch(t=CC, ch=2, c= 4), camera_gain),
+    # row3
+    (Dispatch(t=CC, ch=2, c= 7, val=Not(0)), partial(camera_exposure)),
+    (Dispatch(t=CC, ch=2, c= 7, val=0), partial(camera_exposure_auto)),
+    (Dispatch(t=CC, ch=2, c= 3), camera_gain),
+    # row4
+    (Dispatch(t=CC, ch=2, c= 8, val=Not(0)), camera_wb_temp),
+    (Dispatch(t=CC, ch=2, c= 8, val=0), camera_wb_auto),
+    (Dispatch(t=CC, ch=2, c= 4), camera_saturation),
     ]
 
 @rate_limit(0.25)
@@ -134,7 +138,7 @@ def zoom_placement(msg, RLID='zoom_placement'):
 
         #call(['xdotool', 'search', '--onlyvisible', '--name', '^Zoom$', 'windowsize', '840', '1080'])
 DISPATCHERS.append(
-    (Dispatch(t=CC, ch=0, c= 3), partial(zoom_placement)),
+    (Dispatch(t=CC, ch=0, c= 6), partial(zoom_placement)),
 )
 
 
