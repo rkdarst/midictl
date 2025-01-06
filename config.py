@@ -147,13 +147,13 @@ DISPATCHERS.append(
 #OBS = obsws("k8.zgib.net", 4444, "password")
 TITLE = 'Title'
 GALLERY = 'Gallery'
-LSCREEN = 'Broadcaster-Screen'
+LSCREEN = 'BroadcasterScreen'
 RSCREEN = 'Screenshare'
 NOTES = 'Notes'
 RSCREENLANDSCAPE = 'ScreenshareLandscape'
 SCENES_WITH_PIP = (RSCREEN, 'ScreenshareCrop', RSCREENLANDSCAPE, LSCREEN, NOTES)
 # The "picture in picture" camera insert into the other scenes
-PIP = '_GalleryCapture[hidden]'
+PIP = 'ZoomGalleryCapture'
 # Names of the audio devices
 OBS_AUDIO_DESKTOP = 'Instructors'
 OBS_AUDIO_MIC = 'BroadcasterMic'
