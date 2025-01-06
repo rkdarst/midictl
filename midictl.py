@@ -232,7 +232,10 @@ def find_pulse_basic(sel):
     if sel.it is not None:
         # Filtering for items
         for src in item_list():
-            src.card_object = card_lookup[getattr(src, type_)]
+            card = card_lookup.get(getattr(src, type_))
+            if card is None:
+                return
+            src.card_object = card
             yield src
     else:
         # Filtering for cards
