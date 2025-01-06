@@ -540,21 +540,26 @@ def obs_set_crop(msg, source, scene=None, OBS=None):
     """
     # One person
     if msg.value < 1:
+        crop_n = 1
         crop = CROP_FACTORS[1]
         print("  crop → 1 person")
     # Two people
     elif msg.value < 40:
+        crop_n = 2
         crop = CROP_FACTORS[2]
         print("  crop → 2 people")
     # 3-4 people
     elif msg.value < 80:
+        crop_n = 3
         crop = CROP_FACTORS[3]
         print("  crop → 3-4 people")
     # 5-6 people
     elif msg.value < 127:
+        crop_n = 5
         crop = CROP_FACTORS[5]
         print("  crop → 5-6 people")
     else:
+        crop_n = 0
         crop = CROP_FACTORS[None]
         print("  crop → uncropped")
     if isinstance(scene, str):
@@ -565,6 +570,11 @@ def obs_set_crop(msg, source, scene=None, OBS=None):
         for (k,v) in crop.items():
             transform['crop'+k.title()] = v
         OBS.call(obs_requests.SetSceneItemTransform(sceneName=scene_, sceneItemId=item_id, sceneItemTransform=transform))
+        # Avoid too rapid updates since that causes problems:
+        #crop_n_old = OBS.call(obs_requests.GetPersistentData(realm="OBS_WEBSOCKET_DATA_REALM_PROFILE", slotName="gallerycrop")).datain['slotValue']
+        #if crop_n != crop_n_old:
+        OBS.call(obs_requests.BroadcastCustomEvent(eventData={'gallerycrop': crop_n}))
+            #OBS.call(obs_requests.SetPersistentData(realm='OBS_WEBSOCKET_DATA_REALM_PROFILE', slotName='gallerycrop', slotValue=crop_n))
 
 @obs
 def obs_recording_time_copy(msg, OBS=None, selection='clipboard'):
