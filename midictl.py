@@ -379,6 +379,8 @@ def keystroke(msg, x11_name, stroke):
            ]
     subprocess.call(cmd)
 
+ZOOM_WINDOW_MAIN = '^Meeting$'          # 'Zoom Meeting$'
+ZOOM_WINDOW_SECOND = '^Zoom Workplace$' # '^Zoom$'
 
 def zoom_mute(msg, ignore_fast=None):
     """Zoom software mute via simulater keypress.
@@ -390,13 +392,30 @@ def zoom_mute(msg, ignore_fast=None):
     if ignore_fast and msg.type == 'note_on' and msg.velocity >= ignore_fast:
         print("Fast press, ignoring")
         return
-    return keystroke(msg, x11_name='Zoom Meeting$', stroke='alt+a')
+    return keystroke(msg, x11_name=ZOOM_WINDOW_MAIN, stroke='alt+a')
 
 def zoom_video(msg):
-    return keystroke(msg, x11_name='Zoom Meeting$', stroke='alt+v')
+    return keystroke(msg, x11_name=ZOOM_WINDOW_MAIN, stroke='alt+v')
 
 def zoom_raisehand(msg):
-    return keystroke(msg, x11_name='Zoom Meeting$', stroke='alt+y')
+    return keystroke(msg, x11_name=ZOOM_WINDOW_MAIN, stroke='alt+y')
+
+@rate_limit(0.25)
+def zoom_placement(msg, RLID='zoom_placement'):
+    from subprocess import call
+    if msg.value < 1:
+        call(['xdotool', 'search', '--onlyvisible', '--name', ZOOM_WINDOW_MAIN,   'windowmove', '4', '1025'   , 'windowsize', '1190', '802', ])
+        call(['xdotool', 'search', '--onlyvisible', '--name', ZOOM_WINDOW_SECOND, 'windowmove', '4536', '856', 'windowsize', '500', '414',  ])
+    elif msg.value < 10:
+        call(['xdotool', 'search', '--onlyvisible', '--name', ZOOM_WINDOW_MAIN,   'windowmove', '1575', '867', 'windowsize', '1190', '802', ])
+        call(['xdotool', 'search', '--onlyvisible', '--name', ZOOM_WINDOW_SECOND, 'windowmove', '4536', '856', 'windowsize', '500', '414',  ])
+    elif msg.value < 35:
+        call(['xdotool', 'search', '--onlyvisible', '--name', ZOOM_WINDOW_MAIN,   'windowmove', '4', '1025'   , 'windowsize', '1190', '802', ])
+        call(['xdotool', 'search', '--onlyvisible', '--name', ZOOM_WINDOW_SECOND, 'windowmove', '3120', '840', 'windowsize', '1920', '1080',  ])
+    elif msg.value < 64:
+        call(['xdotool', 'search', '--onlyvisible', '--name', ZOOM_WINDOW_MAIN,   'windowmove', '1575', '867', 'windowsize', '1190', '802', ])
+        call(['xdotool', 'search', '--onlyvisible', '--name', ZOOM_WINDOW_SECOND, 'windowmove', '3120', '840', 'windowsize', '1920', '1080',  ])
+
 
 teams_x11name = r'\| Microsoft Teams - Google Chrome$'
 def teams_mute(msg):
