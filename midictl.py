@@ -400,6 +400,10 @@ def zoom_video(msg):
 def zoom_raisehand(msg):
     return keystroke(msg, x11_name=ZOOM_WINDOW_MAIN, stroke='alt+y')
 
+def zoom_gallery(msg):
+    """Switch to gallery view"""
+    return keystroke(msg, x11_name=ZOOM_WINDOW_MAIN, stroke='alt+f2')
+
 @rate_limit(0.25)
 def zoom_placement(msg, RLID='zoom_placement'):
     from subprocess import call
