@@ -2,18 +2,22 @@
 mic = Selector(t='source', name='input.*USB_Advanced')
 camera = Selector(t='source', name='input.*C922')
 headset_mic = Selector(t='source', name='input.*HyperX')
+headset2_mic = Selector(t='source', name='input.*Jabra')
 mic_items = mic._replace(it='*')
 camera_items = camera._replace(it='*')
 headset_mic_items = headset_mic._replace(it='*')
 # Outputs
-hdmi     = Selector(t='sink',   name='hdmi', name_not='monitor')
-hdmi_items = Selector(t='sink', name='hdmi', name_not='monitor', it='*')
-headphones       = Selector(t='sink', name='HyperX', name_not='monitor')
-headphones_items = Selector(t='sink', name='HyperX', name_not='monitor', it='*')
+hdmi              = Selector(t='sink',   name='hdmi', name_not='monitor')
+hdmi_items        = Selector(t='sink', name='hdmi', name_not='monitor', it='*')
+headphones        = Selector(t='sink', name='HyperX', name_not='monitor')
+headphones_items  = Selector(t='sink', name='HyperX', name_not='monitor', it='*')
+headphones2       = Selector(t='sink', name='Jabra', name_not='monitor')
+headphones2_items = Selector(t='sink', name='Jabra', name_not='monitor', it='*')
 # Monitors of these:
 hdmi_mon       = Selector(t='source',   name='hdmi.*monitor')
 hdmi_mon_items = Selector(t='source', name='hdmi.*monitor', it='*')
 headphones_mon       = Selector(t='source', name='HyperX.*monitor')
+headphones2_mon      = Selector(t='source', name='Jabra.*monitor')
 headphones_mon_items = Selector(t='source', name='HyperX.*monitor', it='*')
 
 
@@ -36,14 +40,17 @@ DISPATCHERS = [
     (Dispatch(t=CC, c=105), partial(pulse_move, sel=Selector(t='sink',                   it='*'),     move_to=hdmi)),
     (Dispatch(t=CC, c=105), partial(pulse_move, sel=Selector(t='source', name='monitor', it='OBS'),   move_to=hdmi_mon)),
     (Dispatch(t=CC, c=105), partial(call, cmd="pactl set-card-profile alsa_card.pci-0000_06_00.1 output:hdmi-stereo-extra5")),  # 2023: R monitor
-    (Dispatch(t=CC, c=107), partial(call, cmd="pactl set-card-profile alsa_card.pci-0000_06_00.1 output:hdmi-stereo-extra4")),  # 2023: vr
+    #(Dispatch(t=CC, c=107), partial(call, cmd="pactl set-card-profile alsa_card.pci-0000_06_00.1 output:hdmi-stereo-extra4")),  # 2023: vr
     (Dispatch(t=CC, c=106), partial(pulse_move, sel=Selector(t='sink',                   it='*'),     move_to=headphones)),
     (Dispatch(t=CC, c=106), partial(pulse_move, sel=Selector(t='source', name='monitor', it='OBS'),   move_to=headphones_mon)),
+    (Dispatch(t=CC, c=107), partial(pulse_move, sel=Selector(t='sink',                   it='*'),     move_to=headphones2)),
+    (Dispatch(t=CC, c=107), partial(pulse_move, sel=Selector(t='source', name='monitor', it='OBS'),   move_to=headphones2_mon)),
 
     # Moving audio between devices: microphones
     (Dispatch(t=CC, c=101), partial(pulse_move, sel=Selector(t='source', it='*', name_not='monitor'), move_to=camera)),
     (Dispatch(t=CC, c=102), partial(pulse_move, sel=Selector(t='source', it='*', name_not='monitor'), move_to=headset_mic)),
-    (Dispatch(t=CC, c=103), partial(pulse_move, sel=Selector(t='source', it='*', name_not='monitor'), move_to=mic)),
+    #(Dispatch(t=CC, c=103), partial(pulse_move, sel=Selector(t='source', it='*', name_not='monitor'), move_to=mic)),
+    (Dispatch(t=CC, c=103), partial(pulse_move, sel=Selector(t='source', it='*', name_not='monitor'), move_to=headset2_mic)),
 
     # Microphones
     # toggle:
@@ -81,6 +88,7 @@ DISPATCHERS = [
     (Dispatch(t=ON, ch=0, b= 7), partial(mute, sel=hdmi)),
     (Dispatch(t=CC,       c= 1), partial(volume, sel=hdmi, low=0, high=1)),
     (Dispatch(t=CC,       c= 1), partial(volume, sel=headphones, low=0, high=1)),
+    (Dispatch(t=CC,       c= 1), partial(volume, sel=headphones2, low=0, high=1)),
     (Dispatch(t=CC, ch=0, c= 2), partial(volume, sel=hdmi_items._replace(last=True), low=0, high=1)),
     #(Dispatch(t=CC, ch=0, c= 3), partial(volume, sel=hdmi_items._replace(last=False), low=0, high=1)),
     #(Dispatch(t=CC,       c= 8), partial(volume, sel=Selector(t='sink', it='Chrome'), low=0, high=.7)),
