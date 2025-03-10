@@ -308,7 +308,11 @@ def pulse_move(msg, sel, move_to, counter=None):
     """Move a PulseAudio device to a different card"""
     if isinstance(move_to, (tuple, list)) and not isinstance(move_to, Selector):
         move_to = move_to[count%len(move_to)]
-    speaker = next(iter(find_pulse(move_to)))
+    try:
+        speaker = next(iter(find_pulse(move_to)))
+    except StopIteration:
+        print(f"Device not found: {move_to}")
+        return
     for source in find_pulse(sel):
         try:
             if move_to.t == 'sink':
